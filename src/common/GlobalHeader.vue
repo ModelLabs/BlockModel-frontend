@@ -4,7 +4,7 @@
       <ul class="topnav">
         <li class="logo-box">
           <router-link to="/explore">
-            <img src="../assets/modelin.jpg" alt="logo" class="logo" />
+            <img src="../assets/colorful.png" alt="logo" class="logo" />
           </router-link>
         </li>
         <li class="search-box">
