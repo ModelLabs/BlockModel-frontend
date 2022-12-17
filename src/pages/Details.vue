@@ -275,6 +275,7 @@ export default {
             status: res.data.status,
             nftId: res.data.nftId,
             paymentId: res.data.paymentId,
+            enckey: res.data.enckey,
           });
         }
       });

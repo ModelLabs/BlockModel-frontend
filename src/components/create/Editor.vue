@@ -53,17 +53,18 @@
     </div>
     <!-- 数据可视化面板 -->
     <div class="data-visual-panel">
-      <el-button class="visual-button" @click="visualPanelVisible = true">
-        Data Visualization
+      <el-button class="visual-button" @click="openDataVisualization">
+        Data  Visualization
       </el-button>
     </div>
     <el-dialog
       title="Modeling data visualization"
       :visible.sync="visualPanelVisible"
+      :modal-append-to-body='false'
       class="data-dialog"
       width="1200px"
     >
-      <VisualPanel />
+    <VisualPanel />
     </el-dialog>
   </div>
 </template>
@@ -76,8 +77,9 @@ import ToolsNavbar from "./RightToolsNavbar";
 import MintForm from "../Template/MintForm";
 import RuleList from "../create/RuleList";
 import { Addon, Graph, Shape } from "@antv/x6";
+import { Vertices } from '@antv/x6/es/registry/tool/vertices'
 const { Stencil } = Addon;
-const { Rect, Circle } = Shape;
+const { Rect, Circle, Polygon,} = Shape;
 // 导入链接桩配置
 import { PortsConfig } from "../../graph/portsConfig";
 import { mapState, mapMutations } from "vuex";
@@ -87,6 +89,18 @@ import { connectMetamask } from "../../api/web3/contracts";
 import { downloadFromIPFS } from "../../utils/ipfsUtil";
 import { querymetadata } from "../../api/index";
 import { decryptDataEOA, decryptDataNormal } from "../../utils/cryptoUtil";
+import { log } from '@antv/g2plot/lib/utils';
+import { round } from '@antv/x6/lib/geometry/util';
+
+// // eslint-disable-next-line
+// const RedVertices = Vertices.define<Vertices.Options>({
+//   name: 'red-vertices',
+//   attrs: {
+//     fill: 'red',
+//   },
+// })
+
+// Graph.registerEdgeTool('red-vertices', RedVertices, true)
 
 export default {
   data() {
@@ -118,14 +132,61 @@ export default {
       "MODIFY_CONFIGDATA",
       "SET_USER",
       "LOAD_RULE_LISTS",
+      "CLEAR_HISTORY_SIMULATE_DATA",
+      "UPDATE_HISTORY_DATA_FROM_INDEXDB",
+      "SET_MARKER_ARRAY",
     ]),
+    async showHistoryDataOfIndexDB(){
+      if(!this.getHistoryDataFromIndexDB.length){
+        // 页面刷新后 不点开始测算 这个列表肯定是空的
+        // 尝试加载 indexDB 数据
+        let tmp = await this.$indexedDB.fullValueSearch("historyData","id",0);
 
+        // TODO (rebase hackathon)
+        let data = [];
+        data.push({
+          simulationDays:"1000",
+          name:"GST",
+          type:0,
+          // vestData:tmpVestData,
+          // stakeData:tmpStakeData,
+          
+        });
+        console.log("indexdb:", data);
+        this.UPDATE_HISTORY_DATA_FROM_INDEXDB(data);
+
+
+        // if(tmp.length) this.UPDATE_HISTORY_DATA_FROM_INDEXDB(tmp[0].data);
+      }
+      // 如果列表非空 肯定是页面刷新后做过测算了 这个列表数据跟 indexDB同步 直接用即可
+    },
+    async showMarkerOfIndexDB(){
+      if(!this.markerArray.length){
+        // 页面刷新后 这个列表肯定是空的
+        // 尝试加载 indexDB 数据
+        let tmp = await this.$indexedDB.fullValueSearch("historyData","id",1);
+        if(tmp.length) this.SET_MARKER_ARRAY(tmp[0].data);
+      }
+      // 如果列表非空 需要后续补充处理 现在非空不管即可
+      // TODO：
+      // 现在 Marker 保存的是最新的检查结果 一个规则一条 不跟特定历史测算数据绑定
+      // 会全部叠加在折线图上 越多规则满足颜色越深
+      // 后续需要单独处理特定数据的绑定逻辑
+      // 这个方法 RightToolsNavbar 也有
+    },
+    async openDataVisualization(){
+      // 每次打开可视化面板的时候 传一份 indexDB 里的历史测算数据
+      this.showHistoryDataOfIndexDB();
+      // 每次打开可视化面板的时候 传一份 indexDB 里的 Property 检查结果
+      await this.showMarkerOfIndexDB();
+      this.visualPanelVisible = true;
+    },
     // 画布初始化
     initGrapg() {
       let cur_graph = new Graph({
         container: document.getElementById("canvas-main"),
         selecting: true,
-        autoResize: true,
+        autoResize: document.getElementById("canvas-main"),
         history: true,
         background: {
           color: "#fff",
@@ -175,14 +236,6 @@ export default {
             return new Shape.Edge({
               attrs: {
                 line: {
-                  // stroke: {
-                  //   type: "linearGradient",
-                  //   stops: [
-                  //     { offset: "0%", color: "#ccc" },
-                  //     { offset: "50%", color: "#73d13d" },
-                  //     { offset: "100%", color: "#ccc" },
-                  //   ],
-                  // },
                   stroke: "#b3b3b3",
                   strokeWidth: 2,
                   targetMarker: {
@@ -194,13 +247,94 @@ export default {
                   },
                 },
               },
-
+              labels: [
+                // label1
+                // {
+                //   markup: [
+                //     {
+                //       tagName: 'rect',
+                //       selector: 'labelBody',
+                //     },
+                //     {
+                //       tagName: 'text',
+                //       selector: 'labelText',
+                //     },
+                //   ],
+                //   attrs: {
+                //     labelText: {
+                //       text: 'Operation',
+                //       fill: '#ffa940',
+                //       textAnchor: 'middle',
+                //       textVerticalAnchor: 'middle',
+                //     },
+                //     labelBody: {
+                //       ref: 'labelText',
+                //       refX: -8,
+                //       refY: -5,
+                //       refWidth: '100%',
+                //       refHeight: '100%',
+                //       refWidth2: 16,
+                //       refHeight2: 10,
+                //       stroke: '#ffa940',
+                //       fill: '#fff',
+                //       strokeWidth: 2,
+                //       rx: 5,
+                //       ry: 5,
+                //     },
+                //   },
+                //   position: {
+                //     distance: -100,
+                //     offset: 0,
+                //     args: {
+                //       keepGradient: true,
+                //       ensureLegibility: true,
+                //     },
+                //   },
+                // },
+              ],
               data: {
-                type: "Edge",
-                inside: 0.5,
-                outside: 0.5,
+                edgeData: [],
+                type: "Edge"
               },
-              zIndex: 0,
+              // tools: [
+              //   {
+              //     name: 'button',
+              //     args: {
+              //       markup: [
+              //         {
+              //           tagName: 'rect',
+              //           selector: 'button',
+              //           attrs: {
+              //             width: 120,
+              //             height: 30,
+              //             x: -60,
+              //             y: -15,
+              //             stroke: '#fe854f',
+              //             'stroke-width': 2,
+              //             fill: 'white',
+              //             cursor: 'pointer',
+              //           },
+              //         },
+              //         {
+              //           tagName: 'text',
+              //           textContent: 'Operation',
+              //           selector: 'icon',
+              //           attrs: {
+              //             fill: '#fe854f',
+              //             'font-size': 10,
+              //             'text-anchor': 'middle',
+              //             'pointer-events': 'none',
+              //             y: '0.3em',
+              //           },
+              //         },
+              //       ],
+              //       distance: -40,
+              //       onClick() {
+              //         alert('fmbb');
+              //       },
+              //     },
+              //   },
+              // ],
             });
           },
           validateConnection({ targetMagnet }) {
@@ -226,17 +360,27 @@ export default {
           rubberband: true,
           showNodeSelectionBox: true,
         },
-
+        interacting: {
+        edgeLabelMovable: true,
         keyboard: true,
         clipboard: true,
+        },
       });
+
       this.INIT_GRAPH(cur_graph);
+      window.onresize = () => {
+        var graphWidth = window.innerWidth - 500;
+        var graphHeight = window.innerHeight - 180;
+        setTimeout(() => {
+          cur_graph.resizeScroller(graphWidth,graphHeight)
+        })
+      }
     },
 
     // 初始化画布侧边栏
     initStencil() {
       this.stencil = new Stencil({
-        title: "Components",
+        title: "",
         target: this.graph,
 
         //collapsable: true,
@@ -245,192 +389,377 @@ export default {
         groups: [
           {
             name: "Components",
+            collapsable:false
           },
         ],
       });
 
       document.getElementById("left").appendChild(this.stencil.container);
-      const stake = new Rect({
+      // const stake = new Rect({
+      //   width: 70,
+      //   height: 40,
+      //   data: {
+      //     //业务数据
+      //     nodeData: {
+      //       stakeData: {
+      //         rewardPolicyFrom: "",
+      //         stakeAmount: [
+      //           { name: "Team", prop: 0, class: "team-slider" },
+      //           { name: "Investor", prop: 0, class: "investor-slider" },
+      //           { name: "Advisor", prop: 0, class: "advisor-slider" },
+      //           { name: "Foundation", prop: 0, class: "foundation-slider" },
+      //           { name: "Community", prop: 0, class: "community-slider" },
+      //         ],
+      //       },
+      //     },
+      //     type: "Stake",
+      //   },
+      //   attrs: {
+      //     rect: {
+      //       fill: "rgb(156,192,2327)",
+      //       stroke: "#E6A23C",
+      //       strokeWidth: 0,
+      //     },
+      //     body: {
+      //       rx: 15,
+      //       ry: 15,
+      //     },
+      //     text: { text: "Stake", fill: "#fff" },
+      //   },
+      //   ports: PortsConfig,
+      // });
+
+      // const unStake = new Rect({
+      //   width: 70,
+      //   height: 40,
+      //   data: {
+      //     //业务数据
+      //     nodeData: {
+      //       unstakeData: {
+      //         coolDownTime: 0,
+      //         unstakeAmount: [
+      //           { name: "Team", prop: 0, class: "team-slider" },
+      //           { name: "Investor", prop: 0, class: "investor-slider" },
+      //           { name: "Advisor", prop: 0, class: "advisor-slider" },
+      //           { name: "Foundation", prop: 0, class: "foundation-slider" },
+      //           { name: "Community", prop: 0, class: "community-slider" },
+      //         ],
+      //       },
+      //     },
+      //     type: "Unstake",
+      //   },
+      //   attrs: {
+      //     rect: { fill: "rgb(164,205,231)", stroke: "#67C23A", strokeWidth: 0 },
+      //     text: { text: "Unstake", fill: "#fff" },
+      //     body: {
+      //       rx: 15,
+      //       ry: 15,
+      //     },
+      //   },
+      //   ports: PortsConfig,
+      // });
+      // // 这边如果调整 name 新拖出来的图形 属性栏会相应修改 画布上原有的不变
+      // const token = new Circle({
+      //   width: 60,
+      //   height: 60,
+      //   data: {
+      //     //业务数据
+      //     nodeData: {
+      //       tokenData: {
+      //         totalSupply: 0,
+      //         allocations: [
+      //           { name: "Team", prop: 0, class: "team-slider" },
+      //           { name: "Investor", prop: 0, class: "investor-slider" },
+      //           { name: "Advisor", prop: 0, class: "advisor-slider" },
+      //           { name: "Foundation", prop: 0, class: "foundation-slider" },
+      //           { name: "Community", prop: 0, class: "community-slider" },
+      //         ],
+      //         community: {
+      //           allocations: [
+      //             { name: "Airdrop", prop: 0, class: "airdrop-turntable" },
+      //             { name: "Staking", prop: 0, class: "staking-turntable" },
+      //           ],
+      //           stakingLifetime: 0,
+      //           stakingRewardRefresh: 0,
+      //           stakingRewardDecreaseFactor: 0,
+      //         },
+      //       },
+      //     },
+      //     type: "Token",
+      //   },
+      //   attrs: {
+      //     circle: {
+      //       fill: "rgb(183,192,228)",
+      //       strokeWidth: 0,
+      //       stroke: "#409EFF",
+      //     },
+      //     text: { text: "Token", fill: "#fff" },
+      //   },
+      //   ports: PortsConfig,
+      // });
+
+      // const vest = new Rect({
+      //   width: 70,
+      //   height: 40,
+      //   data: {
+      //     //业务数据
+      //     nodeData: {
+      //       vestData: {
+      //         vestAmount: [
+      //           {
+      //             name: "Team",
+      //             prop: 0,
+      //             class: "team-slider",
+      //             lockUpTime: 0,
+      //             releasePeriod: 0,
+      //             cliff: 0,
+      //           },
+      //           {
+      //             name: "Investor",
+      //             prop: 0,
+      //             class: "investor-slider",
+      //             lockUpTime: 0,
+      //             releasePeriod: 0,
+      //             cliff: 0,
+      //           },
+      //           {
+      //             name: "Advisor",
+      //             prop: 0,
+      //             class: "advisor-slider",
+      //             lockUpTime: 0,
+      //             releasePeriod: 0,
+      //             cliff: 0,
+      //           },
+      //           {
+      //             name: "Foundation",
+      //             prop: 0,
+      //             class: "foundation-slider",
+      //             lockUpTime: 0,
+      //             releasePeriod: 0,
+      //             cliff: 0,
+      //           },
+      //           {
+      //             name: "Community",
+      //             prop: 0,
+      //             class: "community-slider",
+      //             lockUpTime: 0,
+      //             releasePeriod: 0,
+      //             cliff: 0,
+      //           },
+      //         ],
+      //       },
+      //     },
+      //     type: "Vest",
+      //   },
+      //   attrs: {
+      //     body: {
+      //       rx: 15,
+      //       ry: 15,
+      //     },
+      //     rect: {
+      //       fill: "rgb(205,149,187)",
+      //       stroke: "#F56C6C",
+      //       // stroke: {
+      //       //   type: "linearGradient",
+      //       //   stops: [
+      //       //     { offset: "0%", color: "#ccc" },
+      //       //     { offset: "50%", color: "#73d13d" },
+      //       //     { offset: "100%", color: "#ccc" },
+      //       //   ],
+      //       // },
+      //       strokeWidth: 0,
+      //     },
+      //     text: { text: "Vest", fill: "#fff" },
+      //   },
+      //   ports: PortsConfig,
+      // });
+
+      const pool = new Polygon({
         width: 70,
-        height: 40,
-        data: {
-          //业务数据
-          nodeData: {
-            stakeData: {
-              rewardPolicyFrom: "",
-              stakeAmount: [
-                { name: "Team", prop: 0, class: "team-slider" },
-                { name: "Investor", prop: 0, class: "investor-slider" },
-                { name: "Advisor", prop: 0, class: "advisor-slider" },
-                { name: "Foundation", prop: 0, class: "foundation-slider" },
-                { name: "Community", prop: 0, class: "community-slider" },
-              ],
-            },
-          },
-          type: "Stake",
-        },
+        height: 60,
+        // label: 'LP pool',
+        // 使用 points 属性指定多边形的顶点数组
+        points: [
+          [0, 10],
+          [10, 0],
+          [20, 10],
+        ],
         attrs: {
-          rect: {
-            fill: "rgb(156,192,2327)",
-            stroke: "#E6A23C",
+          body: {
+            fill: '#9254de',
+            stroke: '#9254de',
             strokeWidth: 0,
           },
-          body: {
-            rx: 15,
-            ry: 15,
-          },
-          text: { text: "Stake", fill: "#fff" },
+          text: { text: "Pool", fill: "#fff" },
+          // label: {
+          //     refX: 0.5,
+          //     refY: '100%',
+          //     refY2: -15,
+          //     textAnchor: 'middle',
+          //     textVerticalAnchor: 'bottom',
+          //   }
         },
-        ports: PortsConfig,
-      });
-
-      const unStake = new Rect({
-        width: 70,
-        height: 40,
-        data: {
-          //业务数据
-          nodeData: {
-            unstakeData: {
-              coolDownTime: 0,
-              unstakeAmount: [
-                { name: "Team", prop: 0, class: "team-slider" },
-                { name: "Investor", prop: 0, class: "investor-slider" },
-                { name: "Advisor", prop: 0, class: "advisor-slider" },
-                { name: "Foundation", prop: 0, class: "foundation-slider" },
-                { name: "Community", prop: 0, class: "community-slider" },
-              ],
-            },
-          },
-          type: "Unstake",
-        },
-        attrs: {
-          rect: { fill: "rgb(164,205,231)", stroke: "#67C23A", strokeWidth: 0 },
-          text: { text: "Unstake", fill: "#fff" },
-          body: {
-            rx: 15,
-            ry: 15,
-          },
-        },
-        ports: PortsConfig,
-      });
-
-      const token = new Circle({
-        width: 60,
-        height: 60,
-        data: {
-          //业务数据
-          nodeData: {
-            tokenData: {
-              totalSupply: 0,
-              allocations: [
-                { name: "Team", prop: 0, class: "team-slider" },
-                { name: "Investor", prop: 0, class: "investor-slider" },
-                { name: "Advisor", prop: 0, class: "advisor-slider" },
-                { name: "Foundation", prop: 0, class: "foundation-slider" },
-                { name: "Community", prop: 0, class: "community-slider" },
-              ],
-              community: {
-                allocations: [
-                  { name: "Airdrop", prop: 0, class: "airdrop-turntable" },
-                  { name: "Staking", prop: 0, class: "staking-turntable" },
-                ],
-                stakingLifetime: 0,
-                stakingRewardRefresh: 0,
-                stakingRewardDecreaseFactor: 0,
+        ports: {
+          groups: {
+              top: {
+                  position: "top",
+                  attrs: {
+                      circle: {
+                          r: 4,
+                          magnet: true,
+                          stroke: "#5F95FF",
+                          strokeWidth: 1,
+                          fill: "#fff",
+                          style: {
+                              visibility: "hidden",
+                          },
+                      },
+                  },
               },
-            },
+              right: {
+                  position: "right",
+                  attrs: {
+                      circle: {
+                          r: 4,
+                          magnet: true,
+                          stroke: "#5F95FF",
+                          strokeWidth: 1,
+                          fill: "#fff",
+                          style: {
+                              visibility: "hidden",
+                          },
+                      },
+                  },
+              },
+              bottom: {
+                  position: "bottom",
+                  attrs: {
+                      circle: {
+                          r: 4,
+                          magnet: true,
+                          stroke: "#5F95FF",
+                          strokeWidth: 1,
+                          fill: "#fff",
+                          style: {
+                              visibility: "hidden",
+                          },
+                      },
+                  },
+              },
+              left: {
+                  position: "left",
+                  attrs: {
+                      circle: {
+                          r: 4,
+                          magnet: true,
+                          stroke: "#5F95FF",
+                          strokeWidth: 1,
+                          fill: "#fff",
+                          style: {
+                              visibility: "hidden",
+                          },
+                      },
+                  },
+              },
           },
-          type: "Token",
+          items: [
+              {
+                  group: "top",
+              },
+              {
+                  group: "right",
+                  args: {
+                    dx: -14,
+                  },
+              },
+              {
+                  id: "bottom1",
+                  group: "bottom",
+              },
+              {
+                  id:"bottom2",
+                  group: "bottom",
+              },
+              {
+                  group: "left",
+                  args: {
+                    dx: 14,
+                  },
+              },
+          ],
+        },
+        data: {
+          nodeData: {
+            tokens: [],
+            modules: []
+          },
+          type: "pool"
+        },
+      });
+
+      const genesis = new Circle({
+        width: 35,
+        height: 35,
+        data: {
+          nodeData: {
+            token: "",
+            maxsupply:0,
+          },
+          type: "genesis"
         },
         attrs: {
           circle: {
-            fill: "rgb(183,192,228)",
+            fill: "#73d13d",
             strokeWidth: 0,
             stroke: "#409EFF",
           },
-          text: { text: "Token", fill: "#fff" },
+          text: { text: "*", fill: "#fff" },
         },
         ports: PortsConfig,
       });
 
-      const vest = new Rect({
-        width: 70,
-        height: 40,
+      const stakeholder = new Circle({
+        width: 60,
+        height: 60,
         data: {
-          //业务数据
-          nodeData: {
-            vestData: {
-              vestAmount: [
-                {
-                  name: "Team",
-                  prop: 0,
-                  class: "team-slider",
-                  lockUpTime: 0,
-                  releasePeriod: 0,
-                  cliff: 0,
-                },
-                {
-                  name: "Investor",
-                  prop: 0,
-                  class: "investor-slider",
-                  lockUpTime: 0,
-                  releasePeriod: 0,
-                  cliff: 0,
-                },
-                {
-                  name: "Advisor",
-                  prop: 0,
-                  class: "advisor-slider",
-                  lockUpTime: 0,
-                  releasePeriod: 0,
-                  cliff: 0,
-                },
-                {
-                  name: "Foundation",
-                  prop: 0,
-                  class: "foundation-slider",
-                  lockUpTime: 0,
-                  releasePeriod: 0,
-                  cliff: 0,
-                },
-                {
-                  name: "Community",
-                  prop: 0,
-                  class: "community-slider",
-                  lockUpTime: 0,
-                  releasePeriod: 0,
-                  cliff: 0,
-                },
-              ],
-            },
-          },
-          type: "Vest",
+          nodeData: [],
+          type: "stakeholder"
         },
         attrs: {
-          body: {
-            rx: 15,
-            ry: 15,
-          },
-          rect: {
-            fill: "rgb(205,149,187)",
-            stroke: "#F56C6C",
-            // stroke: {
-            //   type: "linearGradient",
-            //   stops: [
-            //     { offset: "0%", color: "#ccc" },
-            //     { offset: "50%", color: "#73d13d" },
-            //     { offset: "100%", color: "#ccc" },
-            //   ],
-            // },
+          circle: {
+            fill: "rgb(255, 213, 145)",
             strokeWidth: 0,
+            stroke: "#409EFF",
           },
-          text: { text: "Vest", fill: "#fff" },
+          text: { text: "^_^", fill: "#fff" },
         },
         ports: PortsConfig,
       });
 
+      const blackhole = new Circle({
+        width: 35,
+        height: 35,
+        data: {
+          nodeData: {
+            token: "",
+            burn:0,
+          },
+          type: "blackhole"
+        },
+        attrs: {
+          circle: {
+            fill: "red",
+            strokeWidth: 0,
+            stroke: "#409EFF",
+          },
+          text: { text: "x", fill: "#fff" },
+        },
+        ports: PortsConfig,
+      });
+
+      // token.clone(), vest.clone(), stake.clone(), pool.clone(), unStake.clone()
       this.stencil.load(
-        [token.clone(), vest.clone(), stake.clone(), unStake.clone()],
+        [pool.clone(), genesis.clone(), stakeholder.clone(), blackhole.clone()],
         "Components"
       );
     },
@@ -544,16 +873,39 @@ export default {
         showPorts(ports, false);
       });
       this.graph.on("cell:dblclick", ({ cell, e }) => {
-        const name = cell.isEdge() ? "edge-editor" : "node-editor";
-        cell.removeTool(name);
-        cell.addTools([
-          {
-            name,
-            args: {
-              event: e,
-            },
+          // const name = "node-editor";
+          const name = cell.isEdge() ? "edge-editor" : "node-editor";
+          if (cell.isNode()) {
+            cell.removeTool(name);
+            cell.addTools([
+              {
+                name,
+                args: {
+                  event: e,
+                },
+              },
+            ]);
+          } else {
+            //cell.getLabels()[0].attrs.labelText.text='Mint';
+            // var labels = cell.getLabels();
+            // labels[0].attrs.labelText.text='Mint';
+            // cell.setLables(labels);
+            //alert(JSON.stringify(cell.getLabels()[0].attrs.labelText.text));
+          }
+      });
+      this.graph.on("edge:dblclick", ({ edge, e }) => {
+        // var labels = edge.getLabels()[0];
+        // labels.attrs.labelText.text='Transfer';
+        // // alert(JSON.stringify(labels));
+        // edge.removeLabelAt(0);
+        // edge.setLabelAt(0,labels);
+        edge.addTools({
+          name: "edge-editor",
+          args: {
+            event: e,
+            labelAddable: false
           },
-        ]);
+        });
       });
     },
     // 节点编辑面板
@@ -578,12 +930,13 @@ export default {
 
           querymetadata(this.$route.query.nftId).then((metadata) => {
             if (metadata.message_code == this.statusCode.SUCCESSED) {
-              console.log("SUCCESS sync mint data to database");
+              console.log("SUCCESS query metadata from database: ", metadata.data.enckey);
 
               decryptDataEOA(metadata.data.enckey, this.user).then((decryptKey) => {
-                // TODO 对secret data 解密
-                // let decryptSecretData = decryptDataNormal();
+                console.log("decrypted key:", decryptKey);
+                console.log("privURL:",metadata.data.privUrl);
                 downloadFromIPFS(metadata.data.privUrl).then((secretData) => {
+                  console.log("private data:", secretData);
                   let decrypted = decryptDataNormal(secretData, decryptKey);
                   let subSecretData = decrypted.split(",,,");
 
@@ -622,7 +975,6 @@ export default {
       });
     },
   },
-
   mounted() {
     // 初始化面板
     this.initGrapg();
@@ -645,6 +997,8 @@ export default {
       "statusCode",
       "user",
       "historySimulateData",
+      "getHistoryDataFromIndexDB",
+      "markerArray"
     ]),
   },
   watch: {
@@ -672,37 +1026,47 @@ export default {
         width: 200px;
         height: 220px;
         left: 60px;
-        box-shadow: 0 0 6px rgba(180, 180, 180, 0.8);
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
         border-radius: 20px;
-        // border: #e9e9e9 1px solid;
+        text-align: center;
 
         /deep/ .x6-widget-stencil-content {
-          background-color: #fff;
+          background-color: rgba(194, 193, 247, 0.7);
         }
         /deep/ .x6-widget-stencil-group-title {
-          background-color: #fff;
+          background-color: rgba(174, 172, 240, 0);
+          color: rgb(243, 244, 226);
+          font-weight: 600;
+          font-size: 16px;
+          letter-spacing: 0.2ch;
         }
         /deep/ .x6-widget-stencil-content {
           border-radius: inherit;
         }
         /deep/.x6-widget-stencil-title {
           border-radius: 20px;
+          background-color: rgba(174, 172, 240, 0);
+          
         }
         /deep/ .x6-widget-stencil {
           border-radius: 20px;
+          background-color: rgba(174, 172, 240, 0.7);
         }
       }
 
       .mint-btn {
-        background-color: #fff !important;
+        background: -webkit-linear-gradient(left, rgba(149, 119, 204, 0.81), rgba(226, 160, 247, 0.73));
         border: #858585 !important;
-        color: #616060 !important;
+        color: rgb(243, 244, 226);
         position: fixed;
         top: 450px;
         width: 200px;
         height: 40px;
         left: 60px;
-        box-shadow: 0 0 6px rgba(180, 180, 180, 0.8) !important;
+        font-weight: 600;
+        font-size: 15px;
+        letter-spacing: 0.2ch;
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
         border-radius: 20px;
       }
 
@@ -711,7 +1075,7 @@ export default {
         top: 520px;
         left: 60px;
         border-radius: 20px;
-        box-shadow: 0 0 6px rgba(180, 180, 180, 0.8);
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
         height: calc(100% - 580px);
       }
     }
@@ -719,22 +1083,18 @@ export default {
     .draw-main-box {
       position: fixed;
       left: 250px;
-      // overflow: scroll;
       width: calc(100% - 250px);
       height: 100%;
-      //background: url("../../assets/bg.png");
 
       .editor-section {
         display: flex;
         // overflow: scroll;
         margin-top: 40px;
         margin-left: 60px;
-        //width: 70%;
         left: 250px;
         width: calc(100% - 480px);
         height: calc(100% - 180px);
-        // border: solid 2px #f4f4f4;
-        box-shadow: 0 0 6px rgba(180, 180, 180, 0.8);
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
         border-radius: 30px;
 
         /deep/ .x6-graph-scroller {
@@ -800,37 +1160,21 @@ export default {
     bottom: 20px;
     left: 20px;
     .visual-button {
-      // display: flex;
-      // width: 100%;
-      // &:hover {
-      //   cursor: pointer;
-      // }
-      // span {
-      //   margin: auto;
-      //   padding: 0.3em 1em 0.5em;
-      //   background: #409eff;
-      //   color: white;
-
-      //   border-radius: 3px;
-      //   box-shadow: 0 0 0.5em #858585;
-      //   // animation: shake 2s ease 0s infinite;
-      //   // animation-play-state: paused;
-
-      //   // &:hover {
-      //   //   animation-play-state: running;
-      //   // }
-      // }
-
-      background-color: #fff !important;
+      background: -webkit-linear-gradient(left, rgba(137, 225, 242, 0.61), rgba(101, 109, 216, 0.43));
       border: #858585 !important;
-      color: #616060 !important;
+      color: rgb(243, 244, 226);
+      //text-align: center;
+      font-weight: 600;
+      font-size: 15px;
+      letter-spacing: 0.2ch;
       position: fixed;
       top: 380px;
       width: 200px;
       height: 40px;
       left: 60px;
-      box-shadow: 0 0 6px rgba(180, 180, 180, 0.8) !important;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
       border-radius: 20px;
+      // z-index: -2;
     }
   }
   .data-dialog {

@@ -1,5 +1,5 @@
 <template >
-  <div>
+
     <div class="content">
       <div class="title"><span>Explore Models</span></div>
       <!-- <el-divider class="title-divider"></el-divider> -->
@@ -28,8 +28,9 @@
           />
         </div>
       </div>
+
     </div>
-  </div>
+
 </template>
 <script>
 import PaginationTemplate from "../components/Template/PaginationTemplate";

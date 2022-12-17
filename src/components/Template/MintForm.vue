@@ -277,7 +277,7 @@ export default {
       let encryptPub = await getEOAPubkey(this.user);
 
       // 将 NFT Key 用当前公钥加密
-      let encKey = await encryptDataEOA(encryptPub, key);
+      let encKey = encryptDataEOA(encryptPub, key);
       console.log("encrypted key:", encKey);
 
       // 将 picture, secret data 上传到 IPFS

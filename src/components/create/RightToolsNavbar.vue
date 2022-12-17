@@ -67,7 +67,7 @@
         effect="light"
         v-if="nowait"
       >
-        <i @click="startSimulation()" class="el-icon-video-play"></i>
+        <i @click="startSimulation2()" class="el-icon-video-play"></i>
       </el-tooltip>
       <el-tooltip
         class="tooltip"
@@ -95,6 +95,18 @@
       >
         <i @click="endSimulation()" class="el-icon-circle-close"></i>
       </el-tooltip>
+      <!--
+        for test:
+      -->
+      <el-tooltip
+        class="tooltip"
+        content="一次成功"
+        placement="bottom"
+        effect="light"
+      >
+        <i @click="testt()" class="el-icon-magic-stick"></i>
+      </el-tooltip>
+
       <!-- <el-tooltip
           class="tooltip"
           content="Upload existing models"
@@ -118,26 +130,7 @@
     <!-- 系统参数栏 -->
     <div class="config-data-box">
       <h4>Date Configuration</h4>
-      <!-- <span>Simulation Days</span> -->
-
-      <!--  <el-input
-          size="mini"
-          class="config-data-input"
-          v-model="currentSimulationDays"
-          placeholder=""
-          :disabled="modifyDisabled"
-        ></el-input> -->
-
       <span class="config-data-input">Simulation Days</span>
-      <!-- <el-slider
-          v-model="configData.simulationDays"
-          class="day-slider"
-          :min="1"
-          :max="20000"
-          :step="1"
-          :change="modifyConfigData()"
-        ></el-slider> -->
-
       <el-slider
         v-model="configData.simulationDays"
         class="day-slider"
@@ -154,7 +147,7 @@
         v-model="configData.simulationSlot"
         class="day-slider"
         :min="1"
-        :max="5000"
+        :max="20000"
         :step="1"
         show-input
         input-size="mini"
@@ -182,6 +175,61 @@
           ></i>
         </div>
       </div> -->
+  
+    <el-divider></el-divider>
+    <div class="graph-style-setting">
+      <h4>Background Settings</h4>
+      <span>Background Color:</span>
+      <el-color-picker
+        v-model="backgroundColor"
+        show-alpha
+        :predefine="predefineColors">
+      </el-color-picker>
+
+      <span>Grid Color:</span>
+      <el-color-picker
+        v-model="gridColor"
+        show-alpha
+        :predefine="predefineColors"
+        class="grid-color-picker">
+      </el-color-picker>
+      <p></p>
+
+      <span>Grid Type:</span>
+      <el-select v-model="typeValue" placeholder="Dot">
+        <el-option
+          v-for="item in options"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value">
+        </el-option>
+      </el-select>
+
+      <div class="grid-size">
+        <span>Grid Size:</span>
+        <el-slider 
+          v-model="sizeValue"
+          :min="1"
+          :max="20"
+          :step="1"
+          class="grid-size-slider">
+        </el-slider>
+      </div>
+
+      <div class="grid-thickness">
+        <span>Grid Thickness:</span>
+        <el-slider 
+          v-model="thicknessValue"
+          :min="0.5"
+          :max="10"
+          :step="0.5"
+          class="grid-thickness-slider">
+        </el-slider>
+      </div>
+
+      
+    </div>
+  
   </div>
 </template>
 <script>
@@ -190,6 +238,8 @@ import { Model } from "../../graph/model";
 import { DataUri } from "@antv/x6";
 import { setStore } from "../../utils/storage";
 import { PropertyVisitor } from "../../graph/propertyVisitor";
+
+import { Sleep } from "../../utils/sleep";
 
 const antlr4 = require("antlr4");
 const InputStream = antlr4.InputStream;
@@ -205,6 +255,35 @@ export default {
       modifyDisabled: true,
       dialogLogInVisible: false,
       nowait: true,
+      //从 IndexDB 中取历史测算数据
+      getHDFromIndexDB:[],
+      // 记录当前 id
+      currentTpye:0,
+      backgroundColor: 'rgba(255, 255, 255, 1)',
+      gridColor:'rgba(255, 255, 255, 1)',
+      predefineColors: [
+        '#ffffff',
+        '#000000',
+      ],
+      options: [{
+          value: 'dot',
+          label: 'Dot'
+        }, 
+        {
+          value: 'fixedDot',
+          label: 'Fixed Dot'
+        }, 
+        {
+          value: 'mesh',
+          label: 'Mesh'
+        }, 
+        {
+          value: 'doubleMesh',
+          label: 'Double Mesh'
+        }],
+      typeValue: '',
+      sizeValue: '',
+      thicknessValue: '',
     };
   },
   components: {},
@@ -222,7 +301,20 @@ export default {
       "APPEND_HISTORY_SIMULATE_DATA",
       "SET_HISTORY_SIMULATE_DATA",
       "SET_NONCE",
+      "APPEND_PROPERTY_CHECK_RESULT",
+      "SET_CHART_MARKER",
+      "PUSH_MARKER_ARRAY",
+      "CLEAR_HISTORY_SIMULATE_DATA",
+      "UPDATE_HISTORY_DATA_FROM_INDEXDB",
+      "SET_MARKER_ARRAY",
     ]),
+    testt(){
+      this.graph.drawBackground({
+        color:'#111111'
+      });
+      this.graph.updateBackground();
+      console.log("Called")
+    },
     formatTooltip(val) {
       return val / 100;
     },
@@ -262,12 +354,204 @@ export default {
     uploadGraph() {
       this.SHOW_UPLOAD_DIALOG();
     },
-    /*
+
+    /**
+       从 indexdb 中取数据
+     */
+    async getDataFromIndexDB(DBname,key,index){
+      return await this.$indexedDB.fullValueSearch(DBname,key,index);
+    },
+
+    /**
+       往 indexdb 中清空数据
+     */
+    deleteDataFromIndexDB(DBname,id){
+      this.$indexedDB.deleteDB(DBname,id);
+    },
+
+    /**
+       往 indexdb 中存数据
+     */
+    saveDataToIndexDB(DBname,id,data){
+      // 先清空数据
+      this.deleteDataFromIndexDB(DBname,id);
+      // 存数据
+      let obj = { id, data };
+      this.$indexedDB.addData(DBname, obj);
+    },
+
+    /**
+       更新 indexdb 中的历史测算数据
+     */
+    async updateHistorySimulateDataInIndexDB(){
+      // 取存入的所有历史测算数据
+      let tmp = await this.getDataFromIndexDB("historyData","id",0);
+
+      // 如果有存入的历史测算数据的话 取出
+      if(tmp.length) this.getHDFromIndexDB =  tmp[0].data;
+      else this.getHDFromIndexDB = [] ;
+
+      // 拼接当前历史测算数据
+      if(this.historySimulateData.length){
+        for(let i = 0;i<this.historySimulateData.length;i++){
+          this.getHDFromIndexDB.push(this.historySimulateData[i]);
+        }
+        // 把存入 indexDB 的数据也存一份备份 方便检查Property和可视化使用
+        this.UPDATE_HISTORY_DATA_FROM_INDEXDB(this.getHDFromIndexDB);
+        // 存入 indexDB
+        this.saveDataToIndexDB("historyData",0,this.getHDFromIndexDB);
+      }
+    },
+
+    /**
+       取全局 ID
+     */
+    async getCurrentType(){
+      let tmp = await this.getDataFromIndexDB("historyData","id",0);
+      if(tmp.length) this.currentTpye = tmp[0].data[tmp[0].data.length - 1].type + 1;
+      else this.currentTpye = 0;
+    },
+
+    /**
+       更新 indexdb 中的历史 Properties
+     */
+    async savePropertiesToIndexDB(rulesData){
+      // 先取第三条数据如有
+      let tmp = await this.getDataFromIndexDB("historyData","id",2);
+
+      // 然后清空第三条数据
+      this.deleteDataFromIndexDB("historyData",2);
+      
+      if(tmp.length) {
+        tmp[0].data.push(rulesData);
+        // 存入当前所有历史测算数据
+        this.saveDataToIndexDB("historyData",2,tmp[0].data);
+      }
+      else {
+        // 存入当前所有历史测算数据
+        let data = [];
+        data.push(rulesData);
+        this.saveDataToIndexDB("historyData",2,data);
+      }
+    },
+
+    /**
+       更新 indexdb 中的历史 Graph
+     */
+    async saveGraphToIndexDB(graphData) {
+      // 先取第四条数据如有
+      let tmp = await this.getDataFromIndexDB("historyData","id",3);
+
+      // 然后清空第四条数据
+      this.deleteDataFromIndexDB("historyData",3);
+
+      if(tmp.length) {
+        tmp[0].data.push(graphData);
+        // 存入当前所有历史测算数据
+        this.saveDataToIndexDB("historyData",3,tmp[0].data);
+      }
+      else {
+        // 存入当前所有模型数据
+        let data = []
+        data.push(graphData);
+        this.saveDataToIndexDB("historyData",3,data);
+      }
+    },
+    async saveReleaseDataToIndexDB() {
+
+      let tokenId,vestId,stakeId,unstakeId;
+      let hasToken,hasVest,hasStake,hasUnstake;
+
+      // 找到各个节点
+      let nodes = this.graph.model.getNodes();
+        nodes.forEach(element => {
+            switch(element.getData().type) {
+                case "Token":
+                  tokenId = element.id;
+                  hasToken = true;
+                  break;
+                case "Stake":
+                  stakeId = element.id;
+                  hasStake = true;
+                  break;
+                case "Unstake":
+                  unstakeId = element.id;
+                  hasUnstake = true;
+                    break;
+                case "Vest":
+                  vestId = element.id;
+                  hasVest = true;
+                  break;
+                default:
+                    break;
+            }
+        });
+
+      let tokenName,tmpVestData,tmpStakeData;
+      // 取测算总天数
+      let simulationDays = this.configData.simulationDays;
+
+      // 根据 key 值 取 token name && Vest 数据 && stake reward 数据
+      if(hasToken) tokenName = this.model.nodesInstance.get(tokenId).symbol;
+      if(hasVest) tmpVestData = this.model.nodesInstance.get(vestId).vestHistory;
+      if(hasStake) tmpStakeData = this.model.nodesInstance.get(stakeId).rewardList;
+
+      // 先取第 5 条数据如有，然后清空第 5 条数据
+      let tmp = await this.getDataFromIndexDB("historyData","id",4);
+      this.deleteDataFromIndexDB("historyData",4);
+      
+      if(tmp.length) {
+        tmp[0].data.push({
+          simulationDays:simulationDays,
+          name:tokenName,
+          type:this.currentTpye,
+          vestData:tmpVestData,
+          stakeData:tmpStakeData,
+        });
+        this.saveDataToIndexDB("historyData",4,tmp[0].data);
+      }
+      else {
+        // 存入当前所有历史测算数据
+        let data = [];
+        data.push({
+          simulationDays:simulationDays,
+          name:tokenName,
+          type:this.currentTpye,
+          vestData:tmpVestData,
+          stakeData:tmpStakeData,
+        });
+        this.saveDataToIndexDB("historyData",4,data);
+      }
+    },
+    /**
     开始测算
     */
     async startSimulation() {
+      // 正常测算结束后，restart前重置model实例
+      if(this.model != null){
+        // 将当前模型置为 null
+        if(this.model.status == 1){
+          this.SET_MODEL(null);
+        }
+      }
       // 测算开始，开启 loading 图标
       this.nowait = false;
+
+      // 取当前 id
+      await this.getCurrentType();
+
+      // 取当前所有 Property
+      let currentRuleList = []
+      if (this.ruleLists.length) {
+        for(let r=0;r<this.ruleLists.length;r++){
+          // Set RuleList Status === False
+          this.ruleLists[r].status = false;
+
+          // Get all rule content
+          currentRuleList.push(this.ruleLists[r].content)
+        }
+        setStore("rule_lists", this.ruleLists);
+      }
 
       // 模型初次测算时
       if (this.model == null) {
@@ -288,9 +572,10 @@ export default {
         this.SET_MODEL(model);
 
         this.APPEND_HISTORY_SIMULATE_DATA({
-          type: this.nonce,
+          type: this.currentTpye,
           data: this.model.data,
         });
+
       } else {
         // TODO [Done] 模型已经存在时，其相关参数需要根据画布上的最新状态来更新
         this.model.selfUpdate(
@@ -306,17 +591,56 @@ export default {
       // 测算终止（正常终止 / 暂停终止）时更新测算历史数据
       this.SET_HISTORY_SIMULATE_DATA(this.nocne, this.model.data);
 
-      if (this.model.status != 2) {
-        // 当模型处于非 Pause 状态时
-        console.log("the simulation is ended");
-      }
-
       //  测算终止（正常终止 / 暂停终止），关闭 loading 图标
       this.nowait = true;
 
-      this.checkProperty();
+      if (this.model.status != 2) {
+        // 当模型处于非 Pause 状态时
+        console.log("the simulation is ended");
+
+        // Save History Simulate Data to IndexDB
+        await this.updateHistorySimulateDataInIndexDB();
+
+        await this.checkProperty();
+
+        // Save Properties to IndexDB
+        await this.savePropertiesToIndexDB({type:this.currentTpye,rules:currentRuleList});
+
+        // Save Graph to IndexDB
+        let getGraphFromLocalStorage = JSON.parse(localStorage.getItem("graph"));
+        await this.saveGraphToIndexDB({type:this.currentTpye,graph:getGraphFromLocalStorage});
+      }
+      this.saveReleaseDataToIndexDB()
     },
-    /*
+
+    // TODO (rebase hackathon)
+    async startSimulation2() {
+      this.nowait = false;
+      console.log(
+        "starting simulation...",
+        this.configData.simulationDays,
+        "days",
+        " with control slot:",
+        this.configData.simulationSlot,
+        "days"
+      );
+      var model = new Model(
+        this.graph,
+        this.configData.simulationDays,
+        this.configData.simulationSlot
+      );
+
+      this.SET_MODEL(model);
+      for (let i = 1; i <= this.configData.simulationDays; i++) {
+        if (i % this.configData.simulationSlot == 0) {
+          await Sleep(5000);
+          model.curDay = i;
+        }
+      }
+      this.nowait = true;
+    },
+
+    /** 
     暂停测算
     */
     pauseSimulation() {
@@ -338,7 +662,8 @@ export default {
         );
       }
     },
-    /*
+
+    /**
     结束当前测算
     */
     endSimulation() {
@@ -351,8 +676,9 @@ export default {
       this.SET_MODEL(null);
       console.log("the simulation is ended");
       // 当前测算结束后，将记录历史数据次数的 nonce 值增加 1
-      this.SET_NONCE(this.nonce + 1);
+      //this.SET_NONCE(this.nonce + 1);
     },
+
     /**
      * 下载模型图片
      */
@@ -372,6 +698,7 @@ export default {
         }
       );
     },
+
     /**
      * 获取模型测算进行中的时间
      */
@@ -379,44 +706,287 @@ export default {
       if (this.model == null) return 0;
       return this.model.curDay;
     },
+
+    /**
+     * 判断 Property 标识是否应转红
+     */
+    needToResetProperty(ruleListsContent,unq,qua) {
+      /* 
+        Property 不满足转红逻辑构思：
+          目前 Property 语法是 After x days 。。。
+          满足意味着 x 及 x 之后的 days 都应且仅能出现在 qualifyDays 列表中，
+          x 之前的 days 都应且仅能出现在 unqualifyDays 列表中
+          注意：上述两个检查缺一不可
+      */
+
+      // 拿到这个 x 
+      let x = ruleListsContent.replace(/[^\d.]/g, "").split(".")[0];
+
+      // 生成对比列表
+      let compareToUnqualifyDays = [];
+      let compareToQualifyDays = [];
+      for (let i=1;i<x;i++){
+        compareToUnqualifyDays.push(i);
+      }
+      for (let j=Number(x);j<=this.configData.simulationDays;j++){
+        compareToQualifyDays.push(j);
+      }
+
+      // 对比
+      if (
+        JSON.stringify(unq.reverse())===JSON.stringify(compareToUnqualifyDays)
+        &&
+        JSON.stringify(qua.reverse())===JSON.stringify(compareToQualifyDays)
+      ) return false;
+      else return true;
+    },
+
     /**
      * 检查 Property 列表中的所有 Property
      */
-    checkProperty() {
-      for (let i = 0; i < this.ruleLists.length; i++) {
-        const inputStream = new InputStream(this.ruleLists[i].content);
-        const lexer = new GrammarLexer(inputStream);
-        const tokenStream = new CommonTokenStream(lexer);
-        const parser = new GrammarParser(tokenStream);
-        parser.removeErrorListeners();
-        parser.addErrorListener({
-          syntaxError: (
-            recognizer,
-            offendingSymbol,
-            line,
-            column,
-            msg,
-            err
-          ) => {
-            console.error(
-              `${offendingSymbol} line ${line}, col ${column}: ${msg}`
-            );
-            throw err;
-          },
-        });
-        const tree = parser.check();
-        // parser.getInvokingContext()
-        let visitor = new PropertyVisitor(
-          this.model.curDay,
-          this.historySimulateData[this.historySimulateData.length - 1].data,
-          this.graph.model.getNodes()
-        );
-        tree.accept(visitor);
-        if (visitor.state >= 4) {
-          this.ruleLists[i].status = true;
+    async checkProperty() {
+      //let changeStatus = [];
+      if (this.ruleLists.length) {
+        // 组装 Property 检验数据
+        let tmp = new Map();
+        for (let i = 0; i < this.ruleLists.length; i++) {
+          // 循环对每一个 property 进行检验
+          let qualifyDays = [];
+          let unqualifyDays = [];
+          let checkResult = [];
+
+          const inputStream = new InputStream(this.ruleLists[i].content);
+          const lexer = new GrammarLexer(inputStream);
+          const tokenStream = new CommonTokenStream(lexer);
+          const parser = new GrammarParser(tokenStream);
+          parser.removeErrorListeners();
+          parser.addErrorListener({
+            syntaxError: (
+              recognizer,
+              offendingSymbol,
+              line,
+              column,
+              msg,
+              err
+            ) => {
+              console.error(
+                `${offendingSymbol} line ${line}, col ${column}: ${msg}`
+              );
+              throw err;
+            },
+          });
+          const tree = parser.check();
+          let allDataOri = this.historySimulateData[this.historySimulateData.length - 1].data;
+          let allData = JSON.parse(JSON.stringify(allDataOri));
+          // 先用最后一天的数据调用
+          let visitor = new PropertyVisitor(
+            this.model.curDay,
+            allData,
+            this.graph.model.getNodes()
+          );
+          tree.accept(visitor);
+          if (visitor.state >= 4) {
+            this.ruleLists[i].status = true;
+            qualifyDays.push(this.model.curDay);
+          }
+          else {
+            unqualifyDays.push(this.model.curDay);
+          }
+          // 再倒序用最后一天之前的数据调用 调一次 pop 掉一天的数据
+          for (let day=1 ; day<this.model.curDay; day++) {
+            for (let node = 0 ; node < allData.length; node++) {
+              for (let participant = 0 ; participant < allData[node].data.length; participant++) {
+                  allData[node].data[participant].data.pop();                
+              }
+            }
+            let visitor = new PropertyVisitor(
+                    this.model.curDay-day,
+                    allData,
+                    this.graph.model.getNodes()
+                  );
+            tree.accept(visitor);
+            if (visitor.state >= 4) {
+              this.ruleLists[i].status = true;
+              qualifyDays.push(this.model.curDay-day);
+            }
+            else {
+              unqualifyDays.push(this.model.curDay-day);
+            }
+          }
+          checkResult.push(qualifyDays);
+          checkResult.push(unqualifyDays);
+
+          tmp.set(i,checkResult);
+          this.APPEND_PROPERTY_CHECK_RESULT(tmp);
+
+          let reverseUnq = unqualifyDays.concat();
+          let reverseQua = qualifyDays.concat();
+
+          // 判断 Property 标识是否应转红，如是 转红
+          if (
+            this.needToResetProperty(this.ruleLists[i].content,reverseUnq,reverseQua)
+          ) this.ruleLists[i].status = false;
+
+          //console.log("CR",checkResult);
         }
+
+        // 至此 得到每个Property的合格天数和不合格天数
+        // 接下来把合格天数转换为 Marker 里的开始天数和结束天数
+        this.getMarkerTimePeriod();
+        // 生成 Marker Array 
+        await this.setMarkerArray();
+      }
+      setStore("rule_lists", this.ruleLists);
+      this.CLEAR_HISTORY_SIMULATE_DATA();
+    },
+    getMarkerTimePeriod() {
+      // 存该函数运行结果
+      let markDaysOfRules = [];
+
+      // 遍历所有规则:
+      for (var rule of this.propertyResult) {
+        // 记录开始时间和结束时间
+        let startDays = [];
+        let endDays = [];
+
+        // 放开始时间和结束时间数组
+        let markDays = new Map();
+
+        // 只考虑满足 Property 的时间
+        let getQualifyDays = rule[1][0];
+
+        if (getQualifyDays.length>0) {
+          if(getQualifyDays.length===1){
+            // 仅 1 天满足 Property
+            startDays.push(getQualifyDays[0]);
+            endDays.push(getQualifyDays[0]+1); 
+          }
+          else if (getQualifyDays.length===2) {
+            // 共 2 天满足 Property 第一天是开始时间
+            startDays.push(getQualifyDays[0]);
+            if (getQualifyDays[0]-1 === getQualifyDays[1]) {
+              // 如果第二天跟第一天相邻 第二天是结束时间
+              endDays.push(getQualifyDays[1]);
+            }
+            else {
+              // 否则第一天的后一天为结束时间
+              endDays.push(getQualifyDays[0]+1);
+
+              // 第二天及第二天后一天为新的开始 && 结束时间
+              startDays.push(getQualifyDays[1]);
+              endDays.push(getQualifyDays[1]+1);
+            }
+          }
+          else{
+            // 满足 Property 的时间 >2 天
+            let compareDay = getQualifyDays[0]
+            startDays.push(getQualifyDays[0]);
+
+            for (let day=1;day<getQualifyDays.length-1;day++) {
+              if(getQualifyDays[day]+1 === compareDay){
+                // 如果是连续时间，更新对比日期
+                compareDay = getQualifyDays[day];
+              }
+              else{
+                // 如果不连续 完成一个循环 并开始新的循环
+                endDays.push(getQualifyDays[day-1]);
+                startDays.push(getQualifyDays[day]);
+                compareDay = getQualifyDays[day];
+              }
+            }
+            endDays.push(getQualifyDays[getQualifyDays.length-1]);
+          }
+          markDays.set("startDays",startDays);
+          markDays.set("endDays",endDays);
+          markDaysOfRules.push(markDays);
+        }
+        else {
+          // 没有满足 Property 的时间 存 []
+          markDays.set("startDays",startDays);
+          markDays.set("endDays",endDays);
+          markDaysOfRules.push(markDays);
+        }
+        this.SET_CHART_MARKER(markDaysOfRules);
       }
     },
+    saveMarkerToIndexDB(MAData){
+      // 先清空第二条数据
+      this.$indexedDB.deleteDB("historyData",1);
+          
+      // 存入当前所有历史测算数据
+      let id = 1;
+      let data = MAData;
+      let obj = { id, data };
+      this.$indexedDB.addData("historyData", obj);
+    },
+
+    async showMarkerOfIndexDB(){
+      let tmp = await this.$indexedDB.fullValueSearch("historyData","id",1);
+      if(tmp.length) this.SET_MARKER_ARRAY(tmp[0].data);
+      /* if(!this.markerArray.length){
+        // 页面刷新后 这个列表肯定是空的
+        // 尝试加载 indexDB 数据
+        let tmp = await this.$indexedDB.fullValueSearch("historyData","id",1);
+        if(tmp.length) this.SET_MARKER_ARRAY(tmp[0].data);
+      } */
+
+      // 如果列表非空 需要后续补充处理 现在非空不管即可
+      // TODO：
+      // 现在 Marker 保存的是最新的检查结果 一个规则一条 不跟特定历史测算数据绑定
+      // 会全部叠加在折线图上 越多规则满足颜色越深
+      // 后续需要单独处理特定数据的绑定逻辑
+      // 这个方法 Editor 也有
+    },
+
+    async setMarkerArray() {
+      let tmpArr = [];
+      let template = {};
+      template.type = 'region';
+      template.style = {};
+      template.style.fill = 'green';
+      template.style.stroke = 'green';
+      template.style.fillOpacity = 0.5;
+      template.style.lineOpacity = 0.5;
+      template.style.opacity = 1;
+
+      for (let p=0; p<this.chartMarker.length;p++) {
+        // 如果开始时间数组为空 跳过
+        if (this.chartMarker[p].get("startDays").length === 0) {  
+          /* template.start = ['0','min'];
+          template.end = ['0','max'];
+          let str = JSON.parse(JSON.stringify(template));
+          tmpArr.push(str);  */  
+          tmpArr.push({});    
+        }
+        else {
+          for (let sd = 0; sd < this.chartMarker[p].get("startDays").length; sd++) {
+            let sdtmp = this.chartMarker[p].get("startDays");
+            let edtmp = this.chartMarker[p].get("endDays");
+            let sdString = sdtmp[sd].toString();
+            let edString = edtmp[sd].toString();
+
+            template.start = [sdString,'min'];
+            template.end = [edString,'max'];
+
+            let str = JSON.parse(JSON.stringify(template));
+            tmpArr.push(str);
+          }
+        }
+      }
+      // 先加载 indexDB 中的 marker 数据
+      await this.showMarkerOfIndexDB();
+      // 然后追加本次 marker 数据
+      // 下面两个方法之前是直接传入 tmpArr
+      this.PUSH_MARKER_ARRAY({
+        type: this.currentTpye,
+        data: tmpArr,
+      });
+      // 然后把 marker 数据整体打包放进 indexDB
+      this.saveMarkerToIndexDB(this.markerArray);
+    }
+  },
+  mounted(){
+    this.showToLocalStorage();
   },
   computed: {
     ...mapState([
@@ -426,64 +996,215 @@ export default {
       "nonce",
       "ruleLists",
       "historySimulateData",
+      "propertyResult",
+      "chartMarker",
+      "markerArray",
     ]),
   },
-  mounted() {},
+  watch: {
+    /**
+    * 监听对应数据字段，当数据发生变化时重新渲染画布背景色
+    */
+    backgroundColor:{
+      handler() {
+        this.graph.drawBackground({
+        color:this.backgroundColor
+      });
+      this.graph.updateBackground();
+      }
+    },
+    /**
+    * 监听对应数据字段，当数据发生变化时重新渲染网格背景色
+    */
+    gridColor:{
+      handler() {
+        this.graph.drawGrid({
+          type:this.typeValue,
+          args:{
+            color:this.gridColor,
+            thickness:this.thicknessValue
+          }
+        });
+      }
+    },
+    /**
+    * 监听对应数据字段，当数据发生变化时重新渲染网格图形样式
+    */
+    thicknessValue:{
+      handler() {
+        this.graph.drawGrid({
+          type:this.typeValue,
+          args:{
+            color:this.gridColor,
+            thickness:this.thicknessValue
+          }
+        });
+      }
+    },
+    sizeValue:{
+      handler() {
+        this.graph.setGridSize(this.sizeValue);
+      }
+    },
+    /**
+    * 监听对应数据字段，当数据发生变化时重新渲染网格图形粒度
+    */
+    typeValue:{
+      handler() {
+        this.graph.drawGrid({
+          type:this.typeValue,
+          args:{
+            color:this.gridColor,
+            thickness:this.thicknessValue
+          }
+        });
+      }
+    },
+  },
 };
 </script>
 <style lang="scss" scoped>
 .top-container {
-  //height: 50px;
   position: fixed;
   height: calc(100% - 180px);
   width: 300px;
   top: 120px;
   right: calc(100% - (100% - 250px) - 195px);
-  background-color: #ffffff;
+  background-color: rgba(147, 194, 241, 0.55);
   overflow: scroll;
   border-radius: 30px;
-  border: 2.5px solid rgb(232, 231, 231);
-  box-shadow: 0 0 2px rgba(226, 226, 226, 0.8);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+  color: rgb(243, 244, 226);
+  font-size: 18px;
 
   .tool-bar {
-    margin-top: 10px;
-    margin-bottom: 10px;
+    text-align: center;
     h4 {
       margin-left: 10px;
-      margin-top: 30px;
+      letter-spacing: 0.2ch;
+      font-weight: 600;
     }
     i {
       margin: 10px;
       font-size: 18px;
-      color: #555555;
+      color: rgb(243, 244, 226);
       font-weight: bold;
       cursor: pointer;
       &:hover {
-        // color: #9a9a9c;
         color: #409eff;
       }
     }
   }
   .config-data-box {
-    margin-top: 40px;
+    
     h4 {
-      margin-left: 10px;
+      letter-spacing: 0.2ch;
+      font-weight: 600;
+      text-align: center;
     }
     .config-data-input {
       width: 200px;
       margin-left: 10px;
       margin-top: 20px;
+      letter-spacing: 0.1ch;
+      font-weight: 500;
     }
     .day-slider {
       margin-left: 15px;
       margin-bottom: 20px;
       width: 250px;
       /deep/ .el-slider__bar {
-        background-color: rgb(94, 91, 91);
+        background-color: #ffffff;
       }
       /deep/ .el-slider__button {
-        border: 2px solid rgb(94, 91, 91);
+        border: 2px solid #BF9DEF;
         transition: 0s;
+      }
+      /deep/ .el-input-number__decrease, /deep/ .el-input-number__increase {
+        background-color: #d1c0e9;
+        //border: 1px solid #BF9DEF;
+        color: rgb(243, 244, 226);
+      }
+
+      /deep/ .el-input__inner {
+        color: #BF9DEF;
+        font-weight: 600;
+        background-color: #f5f5f5;
+      }
+    }
+  }
+  .graph-style-setting {
+    h4 {
+      letter-spacing: 0.2ch;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 5px;
+    }
+    span {
+      width: 200px;
+      margin-left: 10px;
+      margin-top: 20px;
+      letter-spacing: 0.1ch;
+      font-weight: 500;
+    }
+
+    /deep/ .el-color-picker__trigger {
+      width:100px;
+      height: 25px;
+      left: 15px;
+      top: 5px;
+    }
+
+    /deep/ .el-select {
+      width:163px;
+      padding: 5px;
+      left: 15px;
+    }
+
+    /deep/ .el-input__inner {
+      height: 25px;
+    }
+
+    /deep/ .el-select .el-input .el-select__caret {
+      color: black;
+      padding: 8px;
+    }
+
+    .grid-size {
+      span {
+        margin-top: 8px;
+        float: left;
+      }
+      .grid-size-slider {
+        //padding-bottom: 10px;
+        margin-left: 120px;
+          width: 160px;
+          /deep/ .el-slider__bar {
+            background-color: #ffffff;
+          }
+          /deep/ .el-slider__button {
+            border: 2px solid #BF9DEF;
+            transition: 0s;
+          }
+      }
+    }
+
+    .grid-thickness {
+      span {
+        margin-top: 8px;
+        float: left;
+      }
+      .grid-thickness-slider {
+        //padding-bottom: 10px;
+        margin-left: 155px;
+          width: 125px;
+          /deep/ .el-slider__bar {
+            background-color: #ffffff;
+          }
+          /deep/ .el-slider__button {
+            border: 2px solid #BF9DEF;
+            transition: 0s;
+          }
       }
     }
   }

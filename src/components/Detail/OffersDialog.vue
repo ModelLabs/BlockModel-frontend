@@ -27,6 +27,11 @@
           >
         </template>
       </el-table-column>
+      <el-table-column prop="enckey" label="EncKey" width="180">
+        <template slot-scope="scope">
+          <span class="item">{{ scope.row.enckey }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="" width="150"
         ><template slot-scope="scope">
           <el-button
@@ -45,7 +50,8 @@
 import { mapState} from "vuex";
 
 import { approveNFT, registerNFTSale, confirmTrade} from "../../api/web3/contracts";
-import { updateowner } from "../../api/index";
+import { updateowner, querymetadata, savemetadata} from "../../api/index";
+import { decryptDataEOA, encryptDataEOA} from "../../utils/cryptoUtil";
 
 export default {
   props: ["offers"],
@@ -61,8 +67,22 @@ export default {
     ...mapState(["user"]),
   },
   methods: {
-    confirmSell(row) {
+    async confirmSell(row) {
+      let metadata = await querymetadata(row.nftId);
+      if (metadata.message_code == "500") {
+        
+        console.log("SUCCESS query metadata from database: ", metadata.data);
 
+        let decryptedKey = await decryptDataEOA(metadata.data.enckey, this.user);
+        let encryptedKey = encryptDataEOA(row.enckey, decryptedKey);
+        metadata.data.enckey = encryptedKey;
+
+      } else {
+        console.error("FAIL query metadata from database");
+        return;
+      }
+
+      // TODO (Xufei) approveNFT 应该不需要，需要专门测试一下
       approveNFT(this.user).then((chainRes1) => {
         if (chainRes1.status == "success") {
           this.$notify.success({
@@ -93,6 +113,7 @@ export default {
                   let params = {
                     "newOwner": row.buyer,
                     "nftId": row.nftId,
+                    "encKey": metadata.data.enckey
                   };
 
                   updateowner(params).then((res) => {

@@ -123,6 +123,7 @@ export default {
      * 计算属性，将节点中的业务数据转换为当前页面字段类型
      */
     tokenData() {
+      // 取出 nodeData 里的 tokenData，以便在 HTML 模板中直接使用 tokenData 表示该数据
       return this.nodeData.tokenData;
     },
   },

@@ -6,6 +6,7 @@ import Create from "../pages/Create"
 import Profile from "../pages/Profile"
 import Details from "../pages/Details"
 import Sell from "../pages/Sell"
+import Home from "../pages/Home"
 Vue.use(Router)
 
 export default new Router({
@@ -33,6 +34,10 @@ export default new Router({
         {
             path: '/sell',
             component: Sell
+        },
+        {
+            path: '/home',
+            component: Home
         }
     ]
 })

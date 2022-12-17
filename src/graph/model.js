@@ -234,15 +234,15 @@ export class Model {
 
                 
                 // 每隔一段周期都暂停 5s
-                if (this.slot > 0 && this.curDay % this.slot == 0) {
+                if (this.slot > 0 && this.curDay % this.slot == 0 && this.curDay < this.endDay) {
                     await Sleep(5000);
                 }
-                this.curDay++;
+                // this.curDay++;
                 // 如果模型处于 Off / Pause 状态，直接跳出函数
                 if (this.status == 0 || this.status == 2) {
                     return;
                 }
-
+                this.curDay++;
                 continue;
             }
 
@@ -265,6 +265,7 @@ export class Model {
 
         // 为数据可视化做准备，更新一次测算总体的数据，如 unstakeHistory, vestHistory 等
         this.updateOverallData();
+        this.curDay--;
         // log 提示: 测算运行完毕
         return;
     }

@@ -9,6 +9,7 @@ const state = {
     // 测算引擎
     model: null,
     editNode: null,
+    editEdge:null,
     //系统参数
     configData: {
         simulationDays: 0,
@@ -19,7 +20,13 @@ const state = {
     //测算次数
     nonce: 0,
     //历史测算数据
-    historySimulateData: [],
+    historySimulateData: [{
+        data: [
+            
+        ]
+    }],
+    //INDEXDB + 历史测算数据
+    getHistoryDataFromIndexDB:[],
 
     uploadDialog: false,
     //web3用户登陆相关
@@ -38,11 +45,17 @@ const state = {
     ruleLists: [],
 
     editRule: null,
-    ruleEditShow: { show: false, add: false, index: 0 }
+    ruleEditShow: { show: false, add: false, index: 0 },
 
+    //Property Result
+    propertyResult: null,
 
+    // Chart Marker
+    chartMarker:null,
 
-
+    // All Marker Array
+    markerArray: [],
+    tmpMarkerArray: [],
 }
 
 export default new Vuex.Store({

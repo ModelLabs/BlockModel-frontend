@@ -1,8 +1,9 @@
 import {
     INIT_GRAPH, ZOOM_GRAPH, POSITIONING_GRAPH, UNDO_GRAPH, REDO_GRAPH, STORAGE_GRAPH, LOAD_GRAPH, MODIFY_CONFIGDATA,
     LOAD_CONFIGDATA, LOAD_HISTORY_SIMULATE_DATA, MODIFY_HISTORY_SIMULATE_DATA, SET_HISTORY_SIMULATE_DATA,
-    APPEND_HISTORY_SIMULATE_DATA, SET_NONCE, MODIFY_GRAPH, CLEAR_GRAPH, SHOW_UPLOAD_DIALOG, CLOSE_UPLOAD_DIALOG,
-    SET_MODEL, SET_EDIT_CELLS, REMOVE_CELLS, SET_WEB3_PROVIDER, SET_USER, SET_EDIT_RULE, SAVE_EDIT_RULE, LOAD_RULE_LISTS
+    APPEND_HISTORY_SIMULATE_DATA, CLEAR_HISTORY_SIMULATE_DATA, SET_NONCE, MODIFY_GRAPH, CLEAR_GRAPH, SHOW_UPLOAD_DIALOG, CLOSE_UPLOAD_DIALOG,
+    SET_MODEL, SET_EDIT_CELLS, SET_EDIT_EDGE, REMOVE_CELLS, SET_WEB3_PROVIDER, SET_USER, SET_EDIT_RULE, SAVE_EDIT_RULE, LOAD_RULE_LISTS,
+    APPEND_PROPERTY_CHECK_RESULT,SET_CHART_MARKER,PUSH_MARKER_ARRAY,SET_MARKER_ARRAY,SET_TMP_MARKER_ARRAY,UPDATE_HISTORY_DATA_FROM_INDEXDB,
 } from '../store/mutation-types'
 import { setStore, getStore } from '../utils/storage';
 import Vue from 'vue'
@@ -58,7 +59,7 @@ export default {
     },
 
     /**
-     * 获取到新的model时调用，先将已有画布的内容删除掉，在将新的节点添加
+     * 获取到新的model时调用，先将已有画布的内容删除掉，再将新的节点添加
      * @param {*} state 
      * @param {*} newGraph 
      */
@@ -84,7 +85,6 @@ export default {
         state.graph.clearCells();
         setStore("graph", state.graph);
     },
-
 
     //修改全局的配置项
     [MODIFY_CONFIGDATA](state, params) {
@@ -119,6 +119,16 @@ export default {
     [SET_HISTORY_SIMULATE_DATA](state, index, data) {
         state.historySimulateData[index] = data;
     },
+    // 清空历史测算数据
+    [CLEAR_HISTORY_SIMULATE_DATA](state) {
+        state.historySimulateData = [];
+    },
+
+    // 设置某次历史测算数据
+    [UPDATE_HISTORY_DATA_FROM_INDEXDB](state, data) {
+        state.getHistoryDataFromIndexDB = data;
+    },
+
     //设置测算次数
     [SET_NONCE](state, data) {
         state.nonce = data;
@@ -149,6 +159,10 @@ export default {
     [SET_EDIT_CELLS](state, cell) {
         state.editNode = cell;
     },
+    //右键选中边时调用该方法，editedge作为编辑栏中内容
+    [SET_EDIT_EDGE](state, cell) {
+        state.editEdge = cell;
+    },
 
     //web3相关
     [SET_WEB3_PROVIDER](state, provider) {
@@ -159,6 +173,7 @@ export default {
         state.user = user
         setStore("user", user);
     },
+
     [SET_EDIT_RULE](state, item) {
         state.editRule = item
         setStore("ruleLists", state.ruleLists);
@@ -176,7 +191,27 @@ export default {
         if (getStore("rule_lists")) {
             state.ruleLists = JSON.parse(getStore("rule_lists"));
         }
-    }
+    },
 
+    //添加Property检查结果
+    [APPEND_PROPERTY_CHECK_RESULT](state, data) {
+        state.propertyResult = data;
+    },
 
+    //SET_CHART_MARKER
+    [SET_CHART_MARKER](state, data) {
+        state.chartMarker = data;
+    },
+
+    [SET_MARKER_ARRAY](state, data) {
+        state.markerArray = data;
+    },
+
+    [PUSH_MARKER_ARRAY](state, data) {
+        state.markerArray.push(data);
+    },
+
+    [SET_TMP_MARKER_ARRAY](state, data) {
+        state.tmpMarkerArray = data;
+    },
 }

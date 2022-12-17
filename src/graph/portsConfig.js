@@ -5,11 +5,11 @@ export const PortsConfig = {
             position: "top",
             attrs: {
                 circle: {
-                    r: 4,
+                    r: 5,
                     magnet: true,
                     stroke: "#5F95FF",
-                    strokeWidth: 1,
-                    fill: "#fff",
+                    // strokeWidth: 1,
+                    // fill: "#fff",
                     style: {
                         visibility: "hidden",
                     },
@@ -20,11 +20,11 @@ export const PortsConfig = {
             position: "right",
             attrs: {
                 circle: {
-                    r: 4,
+                    r: 5,
                     magnet: true,
                     stroke: "#5F95FF",
-                    strokeWidth: 1,
-                    fill: "#fff",
+                    // strokeWidth: 1,
+                    // fill: "#fff",
                     style: {
                         visibility: "hidden",
                     },
@@ -35,11 +35,11 @@ export const PortsConfig = {
             position: "bottom",
             attrs: {
                 circle: {
-                    r: 4,
+                    r: 5,
                     magnet: true,
                     stroke: "#5F95FF",
-                    strokeWidth: 1,
-                    fill: "#fff",
+                    // strokeWidth: 1,
+                    // fill: "#fff",
                     style: {
                         visibility: "hidden",
                     },
@@ -50,11 +50,11 @@ export const PortsConfig = {
             position: "left",
             attrs: {
                 circle: {
-                    r: 4,
+                    r: 5,
                     magnet: true,
                     stroke: "#5F95FF",
-                    strokeWidth: 1,
-                    fill: "#fff",
+                    // strokeWidth: 1,
+                    // fill: "#fff",
                     style: {
                         visibility: "hidden",
                     },
@@ -64,13 +64,28 @@ export const PortsConfig = {
     },
     items: [
         {
+          
             group: "top",
+        },
+        {
+          
+            group: "top",
+        },
+        
+        {
+            group: "right",
         },
         {
             group: "right",
         },
         {
             group: "bottom",
+        },
+        {
+            group: "bottom",
+        },
+        {
+            group: "left",
         },
         {
             group: "left",

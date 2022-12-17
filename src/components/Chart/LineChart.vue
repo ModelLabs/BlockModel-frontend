@@ -29,8 +29,10 @@
 </template>
  
 <script>
-import { Line, Pie } from "@antv/g2plot";
+import { Line } from "@antv/g2plot";
 import { last } from '@antv/util';
+import { mapState, mapMutations } from "vuex";
+import { Options } from '@antv/x6/lib/graph/options';
 export default {
   name: "lineChart",
   props: {
@@ -69,6 +71,12 @@ export default {
       selectToken: null,
       chartShow: true,
     };
+  },
+  computed: {
+    ...mapState([
+      "markerArray",
+      "tmpMarkerArray",
+    ]),
   },
   mounted() {
     this.initG2Plot();
@@ -119,7 +127,7 @@ export default {
         yField: this.yField,
         seriesField: this.category,
         smooth: true,
-
+        legend:true,
         yAxis: {
           label: {
             // 数值格式化为千分位
@@ -145,52 +153,8 @@ export default {
         slider:{
           start:0,
           end:1
-        }
-        /* 
-        需求：在折线图中标记 Property 是否满足
-        方案：关键数据点横坐标/横、纵坐标传到下述代码能够解决
-
-        1. type:'region'
-          start && end 的第一个参数是横坐标 它俩分别选定横坐标起点和终点
-          选定区间范围内背景色改变
-
-        2. type:'dataMarker'
-          position 接收关键数据点的 横、纵坐标 并在折线图中标记
-          text 中 content 接收显示在标记旁边的文本信息
-          注意：关键数据点可不在折线图上
-
-        代码功能：更换折线图指定区间背景颜色 && 标记折线图上指定点
-
-        Reference Link :https://g2plot.antv.vision/zh/examples/component/annotation#region-and-data-marker
-        */
-        /* ,
-        annotations:[
-          {
-            type:'region',
-            start: ['1','min'],
-            end: ['100','max']
-          },
-          {
-            type:'dataMarker',
-            position: [50,10000000],
-            text: {
-              content: 'test',
-              style: {
-                textAlign: 'left',
-              },
-            }
-          },
-          {
-            type:'dataMarker',
-            position: [150,10000000],
-            text: {
-              content: 'test',
-              style: {
-                textAlign: 'left',
-              },
-            }
-          },
-        ], */
+        },
+        annotations:this.tmpMarkerArray,
       });
       if (this.linedata.length != 0) {
         this.LinePlot.render();
@@ -198,6 +162,11 @@ export default {
     },
   },
   watch: {
+    tmpMarkerArray:{
+      handler(){
+        this.LinePlot.options.annotations = this.tmpMarkerArray;
+      }
+    },
     /**
      * 监听对应数据字段，当数据发生变化时重新渲染
      */
@@ -206,16 +175,19 @@ export default {
         this.tokenType = [];
         if (this.linedata.length != 0) {
           this.chartShow = false;
-          this.linedata[0].data.forEach((element) => {
-            this.tokenType.push(element.type);
-          });
-          //当被选择数据不为空时，且曾经未选择过，直接使用第一个token字段作为展示
-          if (this.selectToken == null) {
-            this.handleCommand(this.tokenType[0]);
-            this.selectToken = this.tokenType[0];
-          } else {
-            this.handleCommand(this.selectToken);
+          for (let i = 0; i < this.linedata.length; i++) {
+            this.linedata[i].data.forEach((element) => {
+              this.tokenType.push(element.type);
+            });
+            //当被选择数据不为空时，且曾经未选择过，直接使用第一个token字段作为展示
+            if (this.selectToken == null) {
+              this.handleCommand(this.tokenType[0]);
+              this.selectToken = this.tokenType[0];
+            } else {
+              this.handleCommand(this.selectToken);
+            }
           }
+          
         } else {
           this.chartShow = true;
         }

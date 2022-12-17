@@ -23,7 +23,6 @@ export class PropertyVisitor {
           if (child.children && child.children.length != 0) {
             return child.accept(this);
           } else {
-            console.log(child);
             // 当处理 Time 语法时 eg. "After 100 days"
             if (child.parentCtx instanceof TimeContext) {
                 // Time 语法上下文中 下标为 1 的词是我们需要的

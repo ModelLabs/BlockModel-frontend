@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <GlobalHeader />
-    <main>
+    <main class="main">
       <Fade>
         <router-view></router-view>
       </Fade>
@@ -28,6 +28,12 @@ p {
   margin: 0;
   border: 0;
   padding: 0;
+}
+html,body,#app{
+  height: 100%;
+}
+body {
+  background: -webkit-linear-gradient(top, rgba(184, 238, 248, 0.63), rgba(227, 126, 237, 0.42));
 }
 #app {
   font-family: "Times New Roman", Georgia, Serif;

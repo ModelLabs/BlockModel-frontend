@@ -54,19 +54,19 @@ export default {
       // 每次编辑完 / 修改完 property 之后，property 的 status 应重置为 false
       this.newRule.status = false;
       try {
-        // 对于用户输入的 property 进行语法检查
-        const inputStream = new InputStream(this.newRule.content);
-        const lexer = new GrammarLexer(inputStream);
-        const tokenStream = new CommonTokenStream(lexer);
-        const parser = new GrammarParser(tokenStream);
-        parser.removeErrorListeners();
-        parser.addErrorListener({
-          syntaxError: (recognizer, offendingSymbol, line, column, msg, err) => {
-            console.error(`${offendingSymbol} line ${line}, col ${column}: ${msg}`);
-            throw err;
-          }
-        });
-        const tree = parser.check();
+        // 对于用户输入的 property 进行语法检查 TODO (rebase hackathon)
+        // const inputStream = new InputStream(this.newRule.content);
+        // const lexer = new GrammarLexer(inputStream);
+        // const tokenStream = new CommonTokenStream(lexer);
+        // const parser = new GrammarParser(tokenStream);
+        // parser.removeErrorListeners();
+        // parser.addErrorListener({
+        //   syntaxError: (recognizer, offendingSymbol, line, column, msg, err) => {
+        //     console.error(`${offendingSymbol} line ${line}, col ${column}: ${msg}`);
+        //     throw err;
+        //   }
+        // });
+        // const tree = parser.check();
 
         // 语法检查通过后，保存 property
         this.SAVE_EDIT_RULE(this.newRule);

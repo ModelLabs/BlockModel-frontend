@@ -3,8 +3,8 @@
     <div class="header-box">
       <ul class="topnav">
         <li class="logo-box">
-          <router-link to="/explore">
-            <img src="../assets/colorful.png" alt="logo" class="logo" />
+          <router-link to="/home">
+            <img src="../assets/BlockModellogo.png" alt="logo" class="logo" />
           </router-link>
         </li>
         <li class="search-box">
@@ -179,8 +179,7 @@ export default {
 <style  scoped lang="scss">
 .header-box {
   height: 80px;
-  width: 2000px;
-  background-color: #fff;
+  width: 1400px;
   .topnav {
     list-style-type: none;
     margin: 0;
@@ -191,10 +190,9 @@ export default {
     z-index: 9999;
     top: 0;
     width: 100%;
-    background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 1px rgba(255, 255, 255, 0.5), 0 0 6px rgba(74, 141, 223, 0.5);
     .logo {
-      margin: 10px 200px;
+      margin: 10px 55px;
       width: 50px;
     }
     .logo-box {
@@ -206,6 +204,7 @@ export default {
     }
     .search-box {
       width: 550px;
+      margin-left: 300px;
       .search-input-outside {
           float:left;
           width: 500px;
@@ -220,7 +219,7 @@ export default {
             margin-left:5px;
             /deep/ .el-input__inner {
               border: solid 0px rgb(229, 232, 235);
-              background-color: #fff;
+              background-color: rgba(255, 255, 255,0.75);
               border-radius: 6px;
               margin: 0 auto;
             }

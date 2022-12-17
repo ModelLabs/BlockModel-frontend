@@ -42,5 +42,15 @@ export default {
 
     set_web3_provider(context, provider) {
         context.commit('SET_WEB3_PROVIDER', provider)
-    }
+    },
+
+    //Property检查结果
+    append_property_check_result(context, result) {
+        context.commit('APPEND_PROPERTY_CHECK_RESULT', result)
+    },
+
+    //Chart Marker
+    set_chart_marker(context, result) {
+        context.commit('SET_CHART_MARKER', result)
+    },
 }

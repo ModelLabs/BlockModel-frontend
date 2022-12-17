@@ -1,60 +1,83 @@
 <template >
   <div class="container">
     <p class="container-title">
-      Element Attribute Editing
+      <span>{{nodeText.substr(0, 10)}}</span>
+      <span v-show="nodeText.length>10">…</span>
+      <span> - {{nodeType}} Attribute Editing</span>
+      <!-- Element Attribute Editing -->
       <span class="node-edit-close-icon"
         ><i class="el-icon-circle-close" @click="close()"></i
       ></span>
     </p>
-    <Token v-if="nodeType == 'Token'" :nodeData="nodeData" />
-    <Stake v-else-if="nodeType == 'Stake'" :nodeData="nodeData" />
-    <Unstake v-else-if="nodeType == 'Unstake'" :nodeData="nodeData" />
-    <Vest v-else-if="nodeType == 'Vest'" :nodeData="nodeData" />
+    <Genesis v-if="nodeType == 'genesis'" :nodeData="nodeData"/>
+    <Blackhole v-if="nodeType == 'blackhole'" :nodeData="nodeData"/>
+    <Stakeholder v-if="nodeType == 'stakeholder'" :nodeData="nodeData" :nodeId="nodeId"/>
+    <Pool v-if="nodeType == 'pool'" :nodeData="nodeData" :nodeId="nodeId"/>
+    <Operation v-if="nodeType == 'Edge'" :nodeData="nodeData" :nodeId="nodeId"/>
   </div>
 </template>
 <script>
-import { mapState } from "vuex";
-import Token from "../node/Token";
-import Stake from "../node/Stake";
-import Unstake from "../node/Unstake";
-import Vest from "../node/Vest";
+import { mapMutations, mapState } from "vuex";
+import Genesis from "../V2-nodes/Genesis";
+import Blackhole from "../V2-nodes/Blackhole";
+import Stakeholder from "../V2-nodes/Stakeholder";
+import Pool from "../V2-nodes/Pool";
+import Operation from "../edge/Operation2";
+// import Token from "../node/Token";
+// import Stake from "../node/Stake";
+// import Unstake from "../node/Unstake";
+// import Vest from "../node/Vest";
 export default {
   props: ["closeNodeEdit"],
   data() {
     return {
       nodeType: "",
       nodeData: null,
+      nodeText:"",
+      nodeId:""
     };
   },
   methods: {
     close() {
       this.closeNodeEdit();
     },
+    ...mapMutations(["SET_EDIT_EDGE"]),
   },
   components: {
-    Token,
-    Stake,
-    Unstake,
-    Vest,
+    Genesis,
+    Blackhole,
+    Stakeholder,
+    Pool,
+    Operation,
   },
   computed: {
-    ...mapState(["editNode"]),
+    ...mapState(["editNode","editEdge"]),
   },
   watch: {
     editNode(val) {
       this.nodeType = val.getData().type;
-      this.nodeData = val.getData().nodeData;
+      if (this.nodeType == "Edge") {
+        this.nodeData = val.getData().edgeData;
+        this.nodeText = val.labels[0].attrs.label.text;
+        this.nodeId = val.id;
+        this.SET_EDIT_EDGE(val.labels[0].attrs.label.text);
+      } else {
+        this.nodeData = val.getData().nodeData;
+        this.nodeText = val.store.data.attrs.text.text;
+        this.nodeId = val.id;
+      }
+      
     },
   },
 };
 </script>
 <style lang="scss" scoped>
 .container {
+  background-color:#bccaf5;
   position: fixed;
   height: calc(100% - 180px);
   width: 300px;
   right: calc(100% - (100% - 250px) - 195px);
-  background-color: #ffffff;
   overflow: scroll;
   margin-top: 70px;
   border-radius: 30px;
@@ -62,13 +85,12 @@ export default {
   box-shadow: 0 0 1px rgba(219, 218, 218, 0.8);
   .container-title {
     margin: 2%;
-    background-color: #fff;
     height: 32px;
     line-height: 32px;
     font-size: 13px;
     font-weight: 700;
     padding-left: 10px;
-    color: #666;
+    color: white;
     .node-edit-close-icon {
       float: right;
       margin-right: 10px;

@@ -30,7 +30,7 @@ export async function getEOAPubkey(address) {
 }
 
 // EOA 加密数据
-export async function encryptDataEOA(pub, data) {
+export function encryptDataEOA(pub, data) {
     let encryptedMessage = "";
     
     const ethUtil = require('ethereumjs-util');
@@ -53,6 +53,7 @@ export async function encryptDataEOA(pub, data) {
 
 // EOA 解密数据
 export async function decryptDataEOA(data, address) {
+    console.log("data:", data, "address:", address);
     let res = await window.ethereum.request({
           method: 'eth_decrypt',
           params: [data, address],});
