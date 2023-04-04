@@ -1,0 +1,14 @@
+Server started on port 8080
+Executing (default): SELECT `_id`, `_user`, `_apikey`, `_createtime`, `_calltimes` FROM `sessions` AS `sessions` WHERE `sessions`.`_user` = '0x456';
+Executing (default): INSERT INTO `sessions` (`_id`,`_user`,`_apikey`,`_createtime`) VALUES (DEFAULT,?,?,?);
+Server started on port 8080
+Executing (default): INSERT INTO `sessions` (`_id`,`_user`,`_apikey`,`_createtime`) VALUES (DEFAULT,?,?,?);
+Executing (default): DELETE FROM `sessions` WHERE `_user` = '0x321'
+1
+Executing (default): DELETE FROM `sessions` WHERE `_user` = '0x321'
+0
+Executing (default): SELECT `_id`, `_user`, `_apikey`, `_createtime`, `_calltimes` FROM `sessions` AS `sessions` WHERE `sessions`.`_user` = '0x321';
+Server started on port 3030
+Executing (default): SELECT `_id`, `_user`, `_apikey`, `_createtime`, `_calltimes` FROM `sessions` AS `sessions` WHERE `sessions`.`_user` = '0x321';
+Executing (default): SELECT `_id`, `_user`, `_apikey`, `_createtime`, `_calltimes` FROM `sessions` AS `sessions` WHERE `sessions`.`_user` = '0x123';
+Executing (default): SELECT `_id`, `_user`, `_apikey`, `_createtime`, `_calltimes` FROM `sessions` AS `sessions` WHERE `sessions`.`_user` = '0x123';
