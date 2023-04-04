@@ -48,32 +48,38 @@ Although we already synced NFT metadata at back end, we don't want to keep NFT p
 - Become a mature Web3 knowledge community containing many more Tokenomics knowledge!
 
 
-## Project setup
+# BlockModel
 
+## Client project setup
 ```
+cd client
 npm install
 ```
 
 ### Compiles and hot-reloads for development
-
 ```
 npm run serve
 ```
 
 ### Compiles and minifies for production
-
 ```
 npm run build
 ```
 
-### Run your tests
-
-```
-npm run test
-```
-
 ### Lints and fixes files
-
 ```
 npm run lint
 ```
+
+## Server project setup
+
+```
+cd server
+npm install
+```
+run server
+```
+node main.js
+```
+### Customize configuration
+See [Configuration Reference](https://cli.vuejs.org/config/).
