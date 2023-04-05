@@ -198,57 +198,100 @@
 //     }
     
 // }
-// export {
-//     getWeb3Provider,
-//     connectMetamask,
-//     accountChangeListener,
-//     getBalance,
-//     getNftMetadata,
-//     createNFT,
-//     addMinter,
-//     removeMinter,
-//     approveNFT,
-//     registerNFTSale,
-//     makeOfferWithETH,
-//     confirmTrade
-// }
 
-import Web3 from "web3";
-const getWeb3 = () =>
-  new Promise((resolve, reject) => {
-    // Wait for loading completion to avoid race conditions with web3 injection timing.
-    window.addEventListener("load", async () => {
-      // Modern dapp browsers...
-      if (window.ethereum) {
-        const web3 = new Web3(window.ethereum);
-        try {
-          // Request account access if needed
-          await window.ethereum.enable();
-          // Acccounts now exposed
-          resolve(web3);
-        } catch (error) {
-          reject(error);
+import { ethers } from 'ethers';
+
+// import Web3 from "web3";
+//获取 metamask provider
+function getWeb3Provider() {
+
+    if (!window.web3Provider) {
+        if (!window.ethereum) {
+            return null;
         }
-      }
-      // Legacy dapp browsers...
-      else if (window.web3) {
-        // Use Mist/MetaMask's provider.
-        const web3 = window.web3;
-        console.log("Injected web3 detected.");
-        resolve(web3);
-      }
-      // Fallback to localhost; use dev console port by default...
-      else {
-        const provider = new Web3.providers.HttpProvider(
-          "http://127.0.0.1:9545"
-        );
-        const web3 = new Web3(provider);
-        console.log("No web3 instance injected, using Local web3.");
-        resolve(web3);
-      }
-    });
-  });
+        window.web3Provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+    }
+    return window.web3Provider;
 
-  export default {
-	getWeb3
-};
+
+}
+//连接metamask
+async function connectMetamask(provider) {
+    if (provider === null) {
+        return false;
+    }
+    try {
+        // 获取当前连接的账户地址:
+        let account = await window.ethereum.request({
+            method: 'eth_requestAccounts',
+        });
+        // 获取当前连接的链ID:
+        let chainId = await window.ethereum.request({
+            method: 'eth_chainId'
+        });
+        // contract = new ethers.Contract(contract_address, FlowInsightERC721NFT.abi, window.web3Provider.getSigner());
+        // vault = new ethers.Contract(vault_address, FlowInsightVault.abi, window.web3Provider.getSigner());
+        // marketplace = new ethers.Contract(marketplace_address, FlowInsightMarketplace.abi, window.web3Provider.getSigner());
+        return { account: account, chainId: chainId, status: true };
+    } catch (e) {
+        console.error('could not get a wallet connection.', e);
+        return false;
+    }
+}
+//监听账户切换
+function accountChangeListener(fn) {
+    window.ethereum.on('accountsChanged', fn)
+}
+// const getWeb3 = () =>
+//   new Promise((resolve, reject) => {
+//     // Wait for loading completion to avoid race conditions with web3 injection timing.
+//     window.addEventListener("load", async () => {
+//       // Modern dapp browsers...
+//       if (window.ethereum) {
+//         const web3 = new Web3(window.ethereum);
+//         try {
+//           // Request account access if needed
+//           await window.ethereum.enable();
+//           // Acccounts now exposed
+//           resolve(web3);
+//         } catch (error) {
+//           reject(error);
+//         }
+//       }
+//       // Legacy dapp browsers...
+//       else if (window.web3) {
+//         // Use Mist/MetaMask's provider.
+//         const web3 = window.web3;
+//         console.log("Injected web3 detected.");
+//         resolve(web3);
+//       }
+//       // Fallback to localhost; use dev console port by default...
+//       else {
+//         const provider = new Web3.providers.HttpProvider(
+//           "http://127.0.0.1:9545"
+//         );
+//         const web3 = new Web3(provider);
+//         console.log("No web3 instance injected, using Local web3.");
+//         resolve(web3);
+//       }
+//     });
+//   });
+
+//   export default {
+// 	getWeb3
+// };
+
+export {
+  getWeb3Provider,
+  connectMetamask,
+  accountChangeListener,
+  // getBalance,
+  // getNftMetadata,
+  // createNFT,
+  // addMinter,
+  // removeMinter,
+  // approveNFT,
+  // registerNFTSale,
+  // makeOfferWithETH,
+  // confirmTrade
+}

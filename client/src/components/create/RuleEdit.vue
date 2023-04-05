@@ -35,11 +35,11 @@
 <script>
 import { mapState, mapMutations } from "vuex";
 
-const antlr4 = require("antlr4");
-const InputStream = antlr4.InputStream;
-const CommonTokenStream = antlr4.CommonTokenStream;
-const GrammarParser = require("../../parser/PropertyParser").PropertyParser;
-const GrammarLexer = require("../../parser/PropertyLexer").PropertyLexer;
+// const antlr4 = require("antlr4");
+// const InputStream = antlr4.InputStream;
+// const CommonTokenStream = antlr4.CommonTokenStream;
+// const GrammarParser = require("../../parser/PropertyParser").PropertyParser;
+// const GrammarLexer = require("../../parser/PropertyLexer").PropertyLexer;
 
 export default {
   data() {

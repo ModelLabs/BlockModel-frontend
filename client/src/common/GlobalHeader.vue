@@ -17,11 +17,46 @@
           </div>
           <i class="el-icon-search search-icon"></i>
         </li> -->
-        <li class="connect-button" v-if="user == null">
-          <el-button round @click="connect()">Connect</el-button>
+        <li class="connect-web3-button" v-if="user == null">
+          <el-button round @click="connect()">Connect Wallet</el-button>
         </li>
-        <div class="avatar" v-else>
-          <span class="user-short-id">{{ shorUserId }}</span>
+
+        <li class="connect-email-button" v-if="userEmail == null">
+          <el-button round @click="emailDialogVisible = true">Connect Email</el-button>
+        </li>
+        
+        <!-- <el-button class="connect-button">
+          <span v-if="userEmail===''" @click="emailDialogVisible = true">Connect Email</span>
+          <span v-else>{{userEmail.substring(0, 5) + '...' + userEmail.substring(userEmail.length - 4)}}</span>
+        </el-button> -->
+
+        <el-dialog title="Connect Email" :visible.sync="emailDialogVisible" width="30%">
+          <el-form :inline="true" :model="form" class="demo-form-inline">
+            <el-form-item label="Email">
+              <el-input v-model="form.email" placeholder="Use to receive verify conde"></el-input>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="sendCode(form.email)">Send</el-button>
+            </el-form-item>
+          </el-form>
+
+          <!-- TODO：报错 span -->
+          <p v-if="!ifSendError">Email verification failed, please change email or try again later.</p>
+
+          <el-form :inline="true" :model="form" class="demo-form-inline">
+            <el-form-item label="Code">
+              <el-input v-model="form.code" placeholder="Enter code to verify"></el-input>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="verifyCode">Verify</el-button>
+            </el-form-item>
+          </el-form>
+
+          <!-- TODO：验证码错误 span -->
+          <p v-if="!ifCodeError">Verification code timed out or error, please try again</p>
+        </el-dialog>
+        <div class="avatar">
+          <!-- <span class="user-short-id">{{ shorUserId }}</span> -->
           <!--<router-link to="/profile">Profile</router-link>
            <el-avatar icon="el-icon-user-solid" class="avatar-icon"></el-avatar> -->
           <el-dropdown>
@@ -50,15 +85,16 @@
           </el-dropdown>
         </div>
 
-        <router-link tag="li" to="/create" class="right">
-          <span>Create</span>
+        <router-link tag="li" to="/explore" class="right">
+          <span>Explore</span>
         </router-link>
         <router-link tag="li" to="/copilot" class="right">
           <span>CoPilot</span>
         </router-link>
-        <router-link tag="li" to="/explore" class="right">
-          <span>Explore</span>
+        <router-link tag="li" to="/create" class="right">
+          <span>Create</span>
         </router-link>
+        
       </ul>
     </div>
   </div>
@@ -66,7 +102,7 @@
 <script>
 import { mapState, mapMutations, mapActions } from "vuex";
 import { getStore } from "../utils/storage";
-import { setupIPFS } from "../utils/ipfsUtil";
+// import { setupIPFS } from "../utils/ipfsUtil";
 import {
   connectMetamask,
   accountChangeListener,
@@ -75,6 +111,18 @@ import {
 export default {
   data() {
     return {
+      // user:'',
+      userEmail:'',
+      emailDialogVisible:false,
+      form:{
+        email:'',
+        code:'',
+      },
+      formLabelWidth: '60px',
+      dialogFormVisible:false,
+      ifSendError:false,
+      ifCodeError:false,
+
       searchContent: "",
     };
   },
@@ -110,68 +158,91 @@ export default {
       }
     },
     connect() {
-      if (this.web3Provider === null) {
-        let provider = getWeb3Provider();
-        if (provider == null) {
-          this.$notify({
-            title: "Warning",
-            message: "Please install metamask first!",
-            duration: 0,
-            position: "bottom-right",
-          });
-          return;
-        } else {
-          this.set_web3_provider(provider);
-        }
+      if (window.ethereum) {
+        window.ethereum.enable().then((res) => {
+          this.user = res[0]
+        })
+      }else{
+        alert("Please install MetaMask～！")
       }
 
-      connectMetamask(this.web3Provider).then((response) => {
-        if (response.status) {
-          if (this.user != null) {
-            this.$notify.success({
-              title: "Success",
-              message: "Account switching succeeded!",
-              position: "bottom-right",
-            });
-          } else {
-            this.$notify.success({
-              title: "Success",
-              message: "Account connect succeeded!",
-              position: "bottom-right",
-            });
-          }
+      // connectMetamask(this.web3Provider).then((response) => {
+      //   if (response.status) {
+      //     if (this.user != null) {
+      //       this.$notify.success({
+      //         title: "Success",
+      //         message: "Account switching succeeded!",
+      //         position: "bottom-right",
+      //       });
+      //     } else {
+      //       this.$notify.success({
+      //         title: "Success",
+      //         message: "Account connect succeeded!",
+      //         position: "bottom-right",
+      //       });
+      //     }
 
-          this.SET_USER(response.account[0]);
+      //     this.SET_USER(response.account[0]);
 
-          //生成账户头像
-          this.$nextTick(function () {
-            this.$refs.avatar.style.background =
-              "linear-gradient(to right, #" +
-              response.account[0].substring(2, 8) +
-              ", #" +
-              response.account[0].substring(8, 14) +
-              ", #" +
-              response.account[0].substring(14, 20) +
-              ")";
-          });
-        } else {
-          this.$notify.error({
-            title: "Error",
-            message: "Connect failed!",
-            duration: 0,
-            position: "bottom-right",
-          });
-        }
-      });
+      //     //生成账户头像
+      //     this.$nextTick(function () {
+      //       this.$refs.avatar.style.background =
+      //         "linear-gradient(to right, #" +
+      //         response.account[0].substring(2, 8) +
+      //         ", #" +
+      //         response.account[0].substring(8, 14) +
+      //         ", #" +
+      //         response.account[0].substring(14, 20) +
+      //         ")";
+      //     });
+      //   } else {
+      //     this.$notify.error({
+      //       title: "Error",
+      //       message: "Connect failed!",
+      //       duration: 0,
+      //       position: "bottom-right",
+      //     });
+      //   }
+      // });
     },
+
+    // connect() {
+    //   if (window.ethereum) {
+    //     window.ethereum.enable().then((res) => {
+    //     this.SET_USER(res[0]);
+    //   })
+    //   }else{
+    //     alert("Please install MetaMask～！")
+    //   }
+    // },
     logout() {},
+    sendCode(email){
+      this.axios.get(`/api/send/${email}`).then(
+        result => {
+          console.log("succeed",result.data)
+          // do something
+        },
+        error => {
+          console.error("error",error)
+        }
+      )
+    },
+    verifyCode(){}
   },
   mounted() {
     // 连接 IPFS 服务
-    setupIPFS();
+    // setupIPFS();
     this.initProvider();
     accountChangeListener(this.connect);
     this.initUser();
+
+    // if (window.ethereum) {
+    //   window.ethereum.enable().then(() => {
+    //     //alert("当前钱包地址："+res[0])
+    //   })
+    // }else{
+    //   alert("Please install MetaMask～！")
+    // }
   },
 };
 </script>
@@ -269,11 +340,21 @@ export default {
       }
     }
     .right {
-      float: right;
+      float: left;
     }
-    .connect-button {
+    .connect-web3-button {
       float: right;
       margin: 20px 30px 0px 60px;
+      cursor: pointer;
+      .el-button {
+        color: white;
+        border: 0;
+        background: -webkit-linear-gradient(left, #49e4f5, #d849f5);
+      }
+    }
+    .connect-email-button {
+      float: right;
+      margin: 50px 50px 50px 60px;
       cursor: pointer;
       .el-button {
         color: white;
