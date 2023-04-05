@@ -39,16 +39,55 @@ import VisualPanel from "../components/create/VisualPanel";
 import MintForm from "../components/Template/MintForm"
 import { mapMutations, mapState } from "vuex";
 export default {
+  data(){
+    return {
+      modelName:"test",
+    }
+  },
   components: {
     Editor,
     RuleEdit,
     VisualPanel,
     MintForm,
+    
+  },
+  mounted(){
+    console.log("create");
+    this.axios.get(`/api/model/${this.modelName}`).then(
+        result => {
+          let tmp = result.data[0]._modeldata;
+          if (tmp != 0) {
+            let modelData = JSON.parse(tmp);
+
+            //const submitModelConfigData = modelData.model.configData;
+            //后续需要对内容进行校验
+            const submitModelGraph = modelData.model.graph;
+
+            //清空画布
+            this.CLEAR_GRAPH();
+            this.MODIFY_GRAPH(submitModelGraph.cells);
+            this.CLOSE_UPLOAD_DIALOG();
+          } else {
+            console.log("空内容");
+          }
+          //console.log("data",result.data[0]._modeldata);
+          // do something
+        },
+        error => {
+          console.error("error",error)
+        }
+    )
+
+      
+
   },
   methods: {
     ...mapMutations([
       "VISUAL_PANEL_VISIBLE", //修改可视化面板可见性
       "MINT_PANEL_VISIBLE", //修改 Mint 面板可见性
+      "CLEAR_GRAPH",
+      "MODIFY_GRAPH",
+      "CLOSE_UPLOAD_DIALOG",
     ]),
     closeMintEdit() {
       this.MINT_PANEL_VISIBLE(false);

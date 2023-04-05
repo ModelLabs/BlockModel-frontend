@@ -399,9 +399,12 @@ var d3 = require("d3-interpolate");
 // import { Configuration, OpenAIApi } from "openai";
 const schedule = require('node-schedule');
 const apikeys = [
-                 "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",
-                 "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",
-                 "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"
+                "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",
+"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",
+"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"
+                //  "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",
+                //  "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",
+                //  "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"
                  ];
 // we can store callTime into indexeddb
 var callTime = 5;
@@ -1527,6 +1530,11 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.container {
+  display: flex;
+  flex-direction: column;
+  width: 1000xp;
+}
 .tag-selection {
   width: 1000px;
   margin: auto;
@@ -1934,7 +1942,7 @@ export default {
   }
 }
 .btn {
-  margin: 20px;
+  margin: auto;
   width: 1000px;
   font-weight: 600;
   color: white;

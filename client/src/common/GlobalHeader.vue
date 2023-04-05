@@ -7,54 +7,50 @@
             <img src="../assets/BlockModellogo.png" alt="logo" class="logo" />
           </router-link>
         </li>
-        <!-- <li class="search-box">
-          <div class="search-input-outside">
-            <el-input
-              v-model="searchContent"
-              placeholder="Search items"
-              class="serch-input"
-            ></el-input>
-          </div>
-          <i class="el-icon-search search-icon"></i>
-        </li> -->
-        <li class="connect-web3-button" v-if="user == null">
-          <el-button round @click="connect()">Connect Wallet</el-button>
-        </li>
-
-        <li class="connect-email-button" v-if="userEmail == null">
-          <el-button round @click="emailDialogVisible = true">Connect Email</el-button>
-        </li>
-        
-        <!-- <el-button class="connect-button">
-          <span v-if="userEmail===''" @click="emailDialogVisible = true">Connect Email</span>
-          <span v-else>{{userEmail.substring(0, 5) + '...' + userEmail.substring(userEmail.length - 4)}}</span>
-        </el-button> -->
+        <el-dropdown  class="login">
+          <el-button type="primary">
+            Log In<i class="el-icon-arrow-down el-icon--right"></i>
+          </el-button>
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item split-button="true">
+              <!-- <el-button @click="connect()" > -->
+                <span v-if="user===''" @click="connect()">Connect Wallet</span>
+                <span v-else>{{user.substring(0, 5) + '...' + user.substring(user.length - 4)}}</span>
+              <!-- </el-button> -->
+            </el-dropdown-item>
+            <el-dropdown-item split-button="true">
+                <span v-if="userEmail===''" @click="emailDialogVisible = true">Connect Email</span>
+                <span v-else>{{userEmail.substring(0, 5) + '...' + userEmail.substring(userEmail.length - 4)}}</span>
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
 
         <el-dialog title="Connect Email" :visible.sync="emailDialogVisible" width="30%">
-          <el-form :inline="true" :model="form" class="demo-form-inline">
-            <el-form-item label="Email">
-              <el-input v-model="form.email" placeholder="Use to receive verify conde"></el-input>
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="sendCode(form.email)">Send</el-button>
-            </el-form-item>
-          </el-form>
+      <el-form :inline="true" :model="form" class="demo-form-inline">
+        <el-form-item label="Email">
+          <el-input v-model="form.email" placeholder="Use to receive verify conde"></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="sendCode(form.email)">Send</el-button>
+        </el-form-item>
+      </el-form>
 
-          <!-- TODO：报错 span -->
-          <p v-if="!ifSendError">Email verification failed, please change email or try again later.</p>
+      <!-- TODO：报错 span -->
+      <p v-if="ifSendError">Email verification failed, please change email or try again later.</p>
 
-          <el-form :inline="true" :model="form" class="demo-form-inline">
-            <el-form-item label="Code">
-              <el-input v-model="form.code" placeholder="Enter code to verify"></el-input>
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="verifyCode">Verify</el-button>
-            </el-form-item>
-          </el-form>
+      <el-form :inline="true" :model="form" class="demo-form-inline">
+        <el-form-item label="Code">
+          <el-input v-model="form.code" placeholder="Enter code to verify"></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="verifyCode(form.email,form.code)">Verify</el-button>
+        </el-form-item>
+      </el-form>
 
-          <!-- TODO：验证码错误 span -->
-          <p v-if="!ifCodeError">Verification code timed out or error, please try again</p>
-        </el-dialog>
+      <!-- TODO：验证码错误 span -->
+      <p v-if="ifCodeError">Verification code timed out or error, please try again</p>
+    </el-dialog>
+
         <div class="avatar">
           <!-- <span class="user-short-id">{{ shorUserId }}</span> -->
           <!--<router-link to="/profile">Profile</router-link>
@@ -111,7 +107,7 @@ import {
 export default {
   data() {
     return {
-      // user:'',
+      user:'',
       userEmail:'',
       emailDialogVisible:false,
       form:{
@@ -220,14 +216,32 @@ export default {
       this.axios.get(`/api/send/${email}`).then(
         result => {
           console.log("succeed",result.data)
-          // do something
         },
         error => {
-          console.error("error",error)
+          console.error("error",error);
+          this.ifSendError = true;
         }
       )
     },
-    verifyCode(){}
+
+    verifyCode(email,code){
+      console.log("e",email);
+      console.log("c",code);
+      this.axios.post('/api/authcode',{user:email, code:code}).then(
+        result => {
+          console.log("succeed",result.data)
+          if(result.data.result === "true") {
+            this.userEmail = email;
+            this.ifCodeError = false;
+          }
+          else this.ifCodeError = true;
+        },
+        error => {
+          console.error("error",error);
+          this.ifCodeError = true;
+        }
+      )
+    }
   },
   mounted() {
     // 连接 IPFS 服务
@@ -341,6 +355,22 @@ export default {
     }
     .right {
       float: left;
+    }
+    .login {
+      float: right;
+      margin: 5px 50px 0px 50px;
+      cursor: pointer;
+    }
+    .el-button {
+      color: white;
+      border: 0;
+      background: -webkit-linear-gradient(left, #78c9f5, #ca82f4);
+    }
+    .el-input{
+      width: 200px;
+    }
+    /deep/ .el-dialog__body {
+      color: #ff4141;
     }
     .connect-web3-button {
       float: right;

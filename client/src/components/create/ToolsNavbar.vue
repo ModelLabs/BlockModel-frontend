@@ -7,6 +7,23 @@
             <el-button class="btn-general small-btn small-btn-left" @click="POSITIONING_GRAPH()" icon="el-icon-full-screen"></el-button>
             <el-button class="btn-general small-btn small-btn-left" @click="UNDO_GRAPH()" icon="el-icon-back"></el-button>
             <el-button class="btn-general small-btn small-btn-left" @click="REDO_GRAPH()" icon="el-icon-right"></el-button>
+            <el-button class="btn-general small-btn small-btn-left" @click="downloadGraph()" icon="el-icon-download"></el-button>
+            <!-- <el-tooltip
+          class="tooltip"
+          content="Upload existing models"
+          placement="bottom"
+          effect="light"
+        >
+          <i @click="uploadGraph()" class="el-icon-upload2"></i>
+        </el-tooltip> -->
+        <!-- <el-tooltip
+          class="tooltip"
+          content="Download model"
+          placement="bottom"
+          effect="light"
+        >
+          <i @click="downloadGraph()" class="el-icon-download"></i>
+        </el-tooltip> -->
             </div>
             <div class="middle-btn">
             <el-button class="view-btn btn-general medium-btn" @click="openDataVisualization()" icon="el-icon-view"></el-button>
@@ -69,6 +86,29 @@ export default {
             "ADD_SELECT_PROPERTY_DATA",
         ]),
         /**
+    下载当前模型为json文件
+     */
+    downloadGraph() {
+      //获取时间戳
+      var timestamp = new Date().valueOf();
+      //将全局配置信息和画布数据封装成对象
+      let modelData = {
+        model: { configData: this.configData, graph: this.graph },
+      };
+      const filename = "Model" + timestamp + ".json";
+      const data = JSON.stringify(modelData, undefined, 4);
+      let blob = new Blob([data], { type: "text/json" }),
+        a = document.createElement("a");
+      a.download = filename;
+      a.href = window.URL.createObjectURL(blob);
+      // 标签 data- 嵌入自定义属性  屏蔽后也可正常下载
+      a.dataset.downloadurl = ["text/json", a.download, a.href].join(":");
+      // 添加鼠标事件
+      let event = new MouseEvent("click", {});
+      // 向一个指定的事件目标派发一个事件
+      a.dispatchEvent(event);
+    },
+    /**
          从 indexdb 中取数据
         */
         async getDataFromIndexDB(DBname,key,index){

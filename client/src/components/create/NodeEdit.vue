@@ -9,11 +9,13 @@
         ><i class="el-icon-circle-close" @click="close()"></i
       ></span>
     </p>
+    <div class="node-container">
     <Genesis v-if="nodeType == 'genesis'" :nodeData="nodeData"/>
     <Blackhole v-if="nodeType == 'blackhole'" :nodeData="nodeData"/>
     <Stakeholder v-if="nodeType == 'stakeholder'" :nodeData="nodeData" :nodeId="nodeId"/>
     <Pool v-if="nodeType == 'pool'" :nodeData="nodeData" :nodeId="nodeId"/>
     <Operation v-if="nodeType == 'Edge'" :nodeData="nodeData" :nodeId="nodeId" :nodeCell="nodeCell"/>
+    </div>
   </div>
 </template>
 <script>
@@ -76,6 +78,7 @@ export default {
   //background-color:#bccaf5;
   margin: 0;
   position: fixed;
+  height: 75%;
   //height: calc(100% - 180px);
   //width: 300px;
   //right: calc(100% - (100% - 250px) - 195px);
@@ -101,6 +104,9 @@ export default {
         color: #a09e9e;
       }
     }
+  }
+  .node-container{
+    overflow: scroll;
   }
 }
 </style>
