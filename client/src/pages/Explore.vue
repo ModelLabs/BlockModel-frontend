@@ -3,7 +3,20 @@
     <div class="content">
       <div class="title"><span>Explore Models</span></div>
       <!-- <el-divider class="title-divider"></el-divider> -->
-
+      <el-row style="margin-left: 5%;">
+        <el-col :span="3" v-for="(o, index) in 5" :key="o" :offset="index > 0 ? 1 : 0">
+          <el-card :body-style="{ padding: '0px'}">
+            <img src="https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png" class="image">
+            <div style="padding: 14px;">
+              <span>STEPN</span>
+              <div class="bottom clearfix">
+                <!-- <time class="time">{{ currentDate }}</time>
+                <el-button type="text" class="button">操作按钮</el-button> -->
+              </div>
+            </div>
+          </el-card>
+        </el-col>
+      </el-row>
       <div class="items">
         <div class="item" v-for="item in dataList" :key="item.id">
           <div @click="gotoDetailPage(item)">
@@ -93,6 +106,8 @@ export default {
 </script>
 <style lang="scss" scoped>
 .content {
+  width:1000px;
+  margin:auto;
   .title {
     text-align: center;
     padding: 60px;
@@ -180,6 +195,37 @@ export default {
       display: table-cell;
       text-align: center;
     }
+  }
+
+  // explore items
+  .time {
+    font-size: 13px;
+    color: #999;
+  }
+  
+  .bottom {
+    margin-top: 13px;
+    line-height: 12px;
+  }
+
+  .button {
+    padding: 0;
+    float: right;
+  }
+
+  .image {
+    width: 100%;
+    display: block;
+  }
+
+  .clearfix:before,
+  .clearfix:after {
+      display: table;
+      content: "";
+  }
+  
+  .clearfix:after {
+      clear: both
   }
 }
 </style>
