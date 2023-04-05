@@ -65,20 +65,27 @@ router.delete('/session/:user', (req, res) => {
     })
 })
 
-// // Update task
-// router.put('/task/:id', (req, res) => {
-//   if (!req.body.name) {
-//     res.status(400)
-//     res.json({
-//       error: 'Bad data'
-//     })
-//   } else {
-//     Task.update({ task_name: req.body.task_name }, { where: { id: req.params.id } })
-//       .then(() => {
-//         res.send('Task Update!')
-//       })
-//       .error(err => res.send(err))
-//   }
-// })
+// Update session calltimes
+router.put('/session', (req, res) => {
+  console.log(req.body)
+  if (typeof(req.body.user) == 'undefined' || typeof(req.body.calltimes) == 'undefined') {
+    res.status(400)
+    res.json({
+      error: 'Bad data'
+    })
+  } else {
+    Session.update({ _calltimes: req.body.calltimes }, { where: { _user: req.body.user } })
+      .then((reslut) => {
+        console.log(reslut)
+        if (reslut[0]==1) {
+          res.send('Session calltimes Update!')
+        } else {
+          res.send('No Session!')
+        }
+        
+      })
+      .error(err => res.send(err))
+  }
+})
 
 module.exports = router
