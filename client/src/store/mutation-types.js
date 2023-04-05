@@ -27,7 +27,7 @@ export const CLEAR_HISTORY_SIMULATE_DATA = "CLEAR_HISTORY_SIMULATE_DATA"
 export const UPDATE_HISTORY_DATA_FROM_INDEXDB = "UPDATE_HISTORY_DATA_FROM_INDEXDB"
 // 设置测算次数
 export const SET_NONCE = "SET_NONCE";
-// 设置测算模型对象的实例
+//设置测算模型对象的实例
 export const SET_MODEL = "SET_MODEL"
 export const REMOVE_CELLS = "REMOVE_CELLS"
 export const SET_EDIT_CELLS = "SET_EDIT_CELLS"

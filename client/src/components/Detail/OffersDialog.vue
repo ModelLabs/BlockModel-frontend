@@ -49,7 +49,7 @@
 <script>
 import { mapState} from "vuex";
 
-import { approveNFT, registerNFTSale, confirmTrade} from "../../api/web3/contracts";
+import { approveNFT, registerNFTSale, confirmTrade} from "../../api/contracts";
 import { updateowner, querymetadata, savemetadata} from "../../api/index";
 import { decryptDataEOA, encryptDataEOA} from "../../utils/cryptoUtil";
 

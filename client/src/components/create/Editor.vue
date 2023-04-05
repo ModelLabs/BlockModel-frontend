@@ -33,21 +33,17 @@ import Configuration from "./Configuration";
 import MintForm from "../Template/MintForm";
 import RuleList from "../create/RuleList";
 import { Addon, Graph, Shape } from "@antv/x6";
-import { Vertices } from '@antv/x6/es/registry/tool/vertices'
 // 导入链接桩配置
 import { PortsConfig } from "../../graph/portsConfig";
 import { mapState, mapMutations } from "vuex";
-import { querymodel } from "../../api/index";
 import { setStore } from "../../utils/storage";
-import { connectMetamask } from "../../api/web3/contracts";
+import { connectMetamask } from "../../api/contracts";
 import { downloadFromIPFS } from "../../utils/ipfsUtil";
 import { querymetadata } from "../../api/index";
 import { decryptDataEOA, decryptDataNormal } from "../../utils/cryptoUtil";
-import { log } from '@antv/g2plot/lib/utils';
-import { round } from '@antv/x6/lib/geometry/util';
-import { edge } from '@antv/g2plot/lib/adaptor/geometries';
+
 const { Stencil } = Addon;
-const { Rect, Circle, Polygon,} = Shape;
+const { Circle, Polygon,} = Shape;
 // // eslint-disable-next-line
 // const RedVertices = Vertices.define<Vertices.Options>({
 //   name: 'red-vertices',

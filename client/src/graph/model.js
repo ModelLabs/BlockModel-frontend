@@ -1,11 +1,9 @@
-import { Scheduler } from "./scheduler";
 import { Pool } from "./pool";
 import { Edge } from "./edge";
 import { Genesis } from "./genesis";
 import { Stakeholder } from "./stakeholder";
 import { Blackhole } from "./blackhole";
 import { Sleep } from "./../utils/sleep";
-import { StandardNum } from "../utils/numberUtil";
 
 //#region
 // var isPaused = false;
@@ -293,29 +291,29 @@ export class Model {
             // let step = this.scheduler.schedule();
             let _this=this;
 
-            this.nodesInstance.forEach(function(value, key) {
+            this.nodesInstance.forEach(function(value, _) {
                 // value 是每个节点实例
                 value.run(_this.curDay);
             });
 
-            this.edgeActive.forEach(function (value, key) {
+            this.edgeActive.forEach(function (value, _) {
                 value.run(_this.curDay);
             });
 
-            this.edgeNonActive.forEach(function (value, key) {
+            this.edgeNonActive.forEach(function (value, _) {
                 value.run(_this.curDay);
             });
 
-            this.nodesInstance.forEach(function(value, key) {
+            this.nodesInstance.forEach(function(value, _) {
                 // value 是每个节点实例
                 value.update();
             });
 
-            this.edgeActive.forEach(function (value, key) {
+            this.edgeActive.forEach(function (value, _) {
                 value.update();
             });
 
-            this.edgeNonActive.forEach(function (value, key) {
+            this.edgeNonActive.forEach(function (value, _) {
                 value.update();
             });
 

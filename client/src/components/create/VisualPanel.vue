@@ -273,9 +273,9 @@ export default {
     };
   },
   components: {
-    LineChart,
-    PieChart,
-    AreaChart,
+    // LineChart,
+    // PieChart,
+    // AreaChart,
     Rules,
     LinePie,
   },

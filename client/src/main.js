@@ -11,8 +11,17 @@ import 'viewerjs/dist/viewer.css'
 import store from './store'
 import router from './router'
 
+import Web3 from 'web3'
+import axios from 'axios'
+
 import './assets/AliIcon/iconfont'
 import './assets/AliIcon/iconfont.css'
+
+// set axios base url
+axios.defaults.baseURL = 'http://54.67.58.4:3030'
+Vue.prototype.axios = axios
+Vue.prototype.Web3 = Web3;
+
 Vue.use(ElementUI)
 Vue.use(Viewer, {
   defaultOptions: {

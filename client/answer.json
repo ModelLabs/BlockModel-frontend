@@ -1,0 +1,94 @@
+{
+    "basic_info": {
+        "symbol": "SWAP",
+        "initial_supply": 1000000000,
+        "inflation": {
+            "base_rate": 0.05,
+            "min_rate": 0.02,
+            "max_rate": 0.1
+        }
+    },
+    "allocation": {
+        "Team": "15%",
+        "Advisor": "10%",
+        "Community": "25%",
+        "Investor": "50%"
+    },
+
+    "vesting": [
+        {
+            "stakeholder": "Team",
+            "cliff": 365,
+            "frequency": 30,
+            "percentage": [
+                "20%",
+                "20%",
+                "20%",
+                "20%",
+                "20%"
+            ]
+        },
+        {
+            "stakeholder": "Advisor",
+            "cliff": 365,
+            "frequency": 30,
+            "percentage": [
+                "25%",
+                "25%",
+                "25%",
+                "25%"
+            ]
+        },
+        {
+            "stakeholder": "Investor",
+            "cliff": 0,
+            "frequency": 30,
+            "percentage": [
+                "10%",
+                "10%",
+                "10%",
+                "10%",
+                "10%",
+                "10%",
+                "10%",
+                "10%",
+                "10%",
+                "10%"
+            ]
+        },
+        {
+            "stakeholder": "Community",
+            "cliff": 0,
+            "frequency": 30,
+            "percentage": [
+                "2.5%",
+                "2.5%",
+                "2.5%",
+                "2.5%",
+                "2.5%",
+                "2.5%",
+                "2.5%",
+                "2.5%",
+                "2.5%",
+                "2.5%",
+                "2.5%",
+                "2.5%",
+                "2.5%",
+                "2.5%",
+                "2.5%",
+                "2.5%",
+                "2.5%",
+                "2.5%",
+                "2.5%",
+                "2.5%",
+                "2.5%",
+                "2.5%",
+                "2.5%",
+                "2.5%",
+                "2.5%"
+            ]
+        }
+    ]
+    
+    
+}

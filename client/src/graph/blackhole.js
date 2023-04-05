@@ -80,7 +80,7 @@ export class Blackhole {
         }
     }
     
-    DailyTokenOut(token, amount) {
+    DailyTokenOut() {
         console.error("Blackhole:", this.label, " is not capable to output any tokens!");
     }
 

@@ -19,7 +19,7 @@ import { mapState } from "vuex";
 
 import { getEOAPubkey } from "../../utils/cryptoUtil";
 import { saveoffer } from "../../api/index";
-import { makeOfferWithETH } from "../../api/web3/contracts";
+import { makeOfferWithETH } from "../../api/contracts";
 
 export default {
   computed: {
