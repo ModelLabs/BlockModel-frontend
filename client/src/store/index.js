@@ -35,6 +35,7 @@ const state = {
     //web3用户登陆相关
     web3Provider: null,
     user: null,
+    userEmail: null,
 
     //后端响应状态码
     statusCode: {

@@ -1430,7 +1430,7 @@ export default {
   },
 
   mounted(){
-    this.retrieveAPIkey();
+    // this.retrieveAPIkey();
     // let tmpBasicInfo = {
     //   "symbol": "DEX",
     //   "initial_supply": 1000000000,

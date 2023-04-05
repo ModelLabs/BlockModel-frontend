@@ -17,18 +17,31 @@
           </div>
           <i class="el-icon-search search-icon"></i>
         </li> -->
-        <li class="connect-web3-button" v-if="user == null">
-          <el-button round @click="connect()">Connect Wallet</el-button>
+        <li class="connect-web3-button">
+          <el-dropdown>
+            <el-button type="primary">
+              Log In<i class="el-icon-arrow-down el-icon--right"></i>
+            </el-button>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item split-button="true">
+                  <span v-if="user == null" @click="connectWeb3()">Connect Wallet</span>
+                  <span v-else>{{user.substring(0, 5) + '...' + user.substring(user.length - 4)}}</span>
+              </el-dropdown-item>
+              <el-dropdown-item split-button="true">
+                  <span v-if="userEmail == null" @click="connectEmail()">Connect Email</span>
+                  <span v-else>{{userEmail.substring(0, 5) + '...' + userEmail.substring(userEmail.length - 4)}}</span>
+              </el-dropdown-item>
+              <el-dropdown-item icon="el-icon-user">
+                <router-link class="profile" to="/profile">
+                  Profile
+                </router-link>
+              </el-dropdown-item>
+              <el-dropdown-item icon="el-icon-right" split-button="true">
+                <span @click="logout()">Log Out</span>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
         </li>
-
-        <li class="connect-email-button" v-if="userEmail == null">
-          <el-button round @click="emailDialogVisible = true">Connect Email</el-button>
-        </li>
-        
-        <!-- <el-button class="connect-button">
-          <span v-if="userEmail===''" @click="emailDialogVisible = true">Connect Email</span>
-          <span v-else>{{userEmail.substring(0, 5) + '...' + userEmail.substring(userEmail.length - 4)}}</span>
-        </el-button> -->
 
         <el-dialog title="Connect Email" :visible.sync="emailDialogVisible" width="30%">
           <el-form :inline="true" :model="form" class="demo-form-inline">
@@ -55,11 +68,11 @@
           <!-- TODO：验证码错误 span -->
           <p v-if="!ifCodeError">Verification code timed out or error, please try again</p>
         </el-dialog>
-        <div class="avatar">
+        <!-- <div class="avatar"> -->
           <!-- <span class="user-short-id">{{ shorUserId }}</span> -->
           <!--<router-link to="/profile">Profile</router-link>
            <el-avatar icon="el-icon-user-solid" class="avatar-icon"></el-avatar> -->
-          <el-dropdown>
+          <!-- <el-dropdown>
             <div
               class="avatar-icon"
               ref="avatar"
@@ -82,16 +95,16 @@
                 >Log Out</el-dropdown-item
               >
             </el-dropdown-menu>
-          </el-dropdown>
-        </div>
+          </el-dropdown> -->
+        <!-- </div> -->
 
-        <router-link tag="li" to="/explore" class="right">
+        <router-link tag="li" to="/explore" class="left">
           <span>Explore</span>
         </router-link>
-        <router-link tag="li" to="/copilot" class="right">
+        <router-link tag="li" to="/copilot" class="left">
           <span>CoPilot</span>
         </router-link>
-        <router-link tag="li" to="/create" class="right">
+        <router-link tag="li" to="/create" class="left">
           <span>Create</span>
         </router-link>
         
@@ -101,7 +114,7 @@
 </template>
 <script>
 import { mapState, mapMutations, mapActions } from "vuex";
-import { getStore } from "../utils/storage";
+import { getStore, setStore } from "../utils/storage";
 // import { setupIPFS } from "../utils/ipfsUtil";
 import {
   connectMetamask,
@@ -112,7 +125,7 @@ export default {
   data() {
     return {
       // user:'',
-      userEmail:'',
+      // userEmail:'',
       emailDialogVisible:false,
       form:{
         email:'',
@@ -127,7 +140,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["web3Provider", "user"]),
+    ...mapState(["web3Provider", "user", "userEmail"]),
     shorUserId() {
       return (
         this.user.substring(0, 5) +
@@ -153,59 +166,69 @@ export default {
     },
     initUser() {
       let user = getStore("user");
+      console.log("user:", user);
+      // user = getStore("userEmail");
       if (user && user.length != 0) {
-        this.connect();
+        console.log("1111");
+        this.connectWeb3();
       }
     },
-    connect() {
+    connectWeb3() {
       if (window.ethereum) {
+        console.log("222");
         window.ethereum.enable().then((res) => {
           this.user = res[0]
+          console.log("res:",res[0]);
         })
       }else{
         alert("Please install MetaMask～！")
       }
 
-      // connectMetamask(this.web3Provider).then((response) => {
-      //   if (response.status) {
-      //     if (this.user != null) {
-      //       this.$notify.success({
-      //         title: "Success",
-      //         message: "Account switching succeeded!",
-      //         position: "bottom-right",
-      //       });
-      //     } else {
-      //       this.$notify.success({
-      //         title: "Success",
-      //         message: "Account connect succeeded!",
-      //         position: "bottom-right",
-      //       });
-      //     }
+      connectMetamask(this.web3Provider).then((response) => {
+        if (response.status) {
+          if (this.user != null) {
+            this.$notify.success({
+              title: "Success",
+              message: "Account switching succeeded!",
+              position: "bottom-right",
+            });
+          } else {
+            this.$notify.success({
+              title: "Success",
+              message: "Account connect succeeded!",
+              position: "bottom-right",
+            });
+          }
+          console.log("3333");
+          this.SET_USER(response.account[0]);
+          console.log("response.account:", response.account[0]);
 
-      //     this.SET_USER(response.account[0]);
-
-      //     //生成账户头像
-      //     this.$nextTick(function () {
-      //       this.$refs.avatar.style.background =
-      //         "linear-gradient(to right, #" +
-      //         response.account[0].substring(2, 8) +
-      //         ", #" +
-      //         response.account[0].substring(8, 14) +
-      //         ", #" +
-      //         response.account[0].substring(14, 20) +
-      //         ")";
-      //     });
-      //   } else {
-      //     this.$notify.error({
-      //       title: "Error",
-      //       message: "Connect failed!",
-      //       duration: 0,
-      //       position: "bottom-right",
-      //     });
-      //   }
-      // });
+          //生成账户头像
+          // this.$nextTick(function () {
+          //   this.$refs.avatar.style.background =
+          //     "linear-gradient(to right, #" +
+          //     response.account[0].substring(2, 8) +
+          //     ", #" +
+          //     response.account[0].substring(8, 14) +
+          //     ", #" +
+          //     response.account[0].substring(14, 20) +
+          //     ")";
+          // });
+        } else {
+          this.$notify.error({
+            title: "Error",
+            message: "Connect failed!",
+            duration: 0,
+            position: "bottom-right",
+          });
+        }
+      });
     },
 
+    connectEmail() {
+      emailDialogVisible = true
+      this.userEmail = form.email;
+    },
     // connect() {
     //   if (window.ethereum) {
     //     window.ethereum.enable().then((res) => {
@@ -215,7 +238,11 @@ export default {
     //     alert("Please install MetaMask～！")
     //   }
     // },
-    logout() {},
+    logout() {
+      console.log("in");
+      this.SET_USER(null);
+      setStore("user", null);
+    },
     sendCode(email){
       this.axios.get(`/api/send/${email}`).then(
         result => {
@@ -233,7 +260,7 @@ export default {
     // 连接 IPFS 服务
     // setupIPFS();
     this.initProvider();
-    accountChangeListener(this.connect);
+    accountChangeListener(this.connectWeb3);
     this.initUser();
 
     // if (window.ethereum) {
@@ -339,12 +366,12 @@ export default {
         }
       }
     }
-    .right {
+    .left {
       float: left;
     }
     .connect-web3-button {
       float: right;
-      margin: 20px 30px 0px 60px;
+      margin: 20px 30px 0px 20px;
       cursor: pointer;
       .el-button {
         color: white;
@@ -354,7 +381,7 @@ export default {
     }
     .connect-email-button {
       float: right;
-      margin: 50px 50px 50px 60px;
+      margin: 20px 0px 0px 20px;
       cursor: pointer;
       .el-button {
         color: white;
