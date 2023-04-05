@@ -18,6 +18,22 @@ CREATE TABLE IF NOT EXISTS sessions (
         _calltimes INT NOT NULL
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE IF NOT EXISTS authcodes (
+        _id INT AUTO_INCREMENT PRIMARY KEY,
+        _user VARCHAR(64) NOT NULL, 
+        _code VARCHAR(64) NOT NULL,
+        _createtime VARCHAR(64) NOT NULL
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS models (
+        _id INT AUTO_INCREMENT PRIMARY KEY,
+        _name VARCHAR(64) NOT NULL COMMENT 'hash of flowable NFT metadata', 
+        _modeldata longtext NOT NULL COMMENT 'json data of model',
+        _params longtext NOT NULL COMMENT 'measure parameters',
+        _result longtext NOT NULL COMMENT 'measure results',
+        _status int DEFAULT 0 NOT NULL COMMENT 'padding or commit'
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 INSERT INTO apikeys VALUES (
     null,
     "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",
