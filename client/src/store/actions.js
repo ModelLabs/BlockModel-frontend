@@ -1,4 +1,4 @@
-import { SET_PROVIDER } from "./mutation-types"
+// import { SET_PROVIDER } from "./mutation-types"
 
 export default {
     // 初始化画布

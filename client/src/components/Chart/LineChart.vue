@@ -41,8 +41,7 @@
  
 <script>
 import { Line } from "@antv/g2plot";
-import { last } from '@antv/util';
-import { mapState, mapMutations } from "vuex";
+import { mapState } from "vuex";
 import { Pool } from "../../graph/pool";
 export default {
   name: "lineChart",

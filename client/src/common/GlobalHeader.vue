@@ -53,6 +53,9 @@
         <router-link tag="li" to="/create" class="right">
           <span>Create</span>
         </router-link>
+        <router-link tag="li" to="/copilot" class="right">
+          <span>CoPilot</span>
+        </router-link>
         <router-link tag="li" to="/explore" class="right">
           <span>Explore</span>
         </router-link>
@@ -62,17 +65,13 @@
 </template>
 <script>
 import { mapState, mapMutations, mapActions } from "vuex";
-import { setStore, getStore } from "../utils/storage";
+import { getStore } from "../utils/storage";
 import { setupIPFS } from "../utils/ipfsUtil";
 import {
   connectMetamask,
   accountChangeListener,
-  getBalance,
-  getNftMetadata,
-  createNFT,
-  addMinter,
   getWeb3Provider,
-} from "../api/web3/contracts";
+} from "../api/contracts";
 export default {
   data() {
     return {

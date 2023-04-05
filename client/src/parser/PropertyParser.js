@@ -1,6 +1,6 @@
 // Generated from Property.g4 by ANTLR 4.8
 // jshint ignore: start
-var antlr4 = require('antlr4/index');
+var antlr4 = require('antlr4');
 var PropertyListener = require('./PropertyListener').PropertyListener;
 var PropertyVisitor = require('./PropertyVisitor').PropertyVisitor;
 

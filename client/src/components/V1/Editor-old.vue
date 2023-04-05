@@ -94,7 +94,7 @@ import { PortsConfig } from "../../graph/portsConfig";
 import { mapState, mapMutations } from "vuex";
 import { querymodel } from "../../api/index";
 import { setStore } from "../../utils/storage";
-import { connectMetamask } from "../../api/web3/contracts";
+import { connectMetamask } from "../../api/contracts";
 import { downloadFromIPFS } from "../../utils/ipfsUtil";
 import { querymetadata } from "../../api/index";
 import { decryptDataEOA, decryptDataNormal } from "../../utils/cryptoUtil";

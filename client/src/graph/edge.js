@@ -1,6 +1,6 @@
-import { create, all} from "mathjs";
-const config = { };
-const math = create(all, config);
+// import { create, all} from "mathjs";
+// const config = { };
+// const math = create(all, config);
 
 export class Edge {
 

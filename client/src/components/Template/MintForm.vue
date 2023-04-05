@@ -91,13 +91,13 @@
 <script>
 import pdf from "vue-pdf";
 import { savemetadata } from "../../api/index";
-import { createNFT } from "../../api/web3/contracts";
+import { createNFT } from "../../api/contracts";
 import { mapState } from "vuex";
 import { getStore } from "../../utils/storage";
 import { randomString } from "../../utils/ranDom";
 
 import { uploadToIPFS } from "../../utils/ipfsUtil";
-import { encryptDataNormal, encryptDataEOA, getEOAPubkey, decryptDataEOA} from "../../utils/cryptoUtil";
+import { encryptDataNormal, encryptDataEOA, getEOAPubkey} from "../../utils/cryptoUtil";
 
 import MintNodes from "./MintNodes";
 import MintEdges from "./MintEdges";
