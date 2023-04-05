@@ -52,8 +52,8 @@ export default {
     
   },
   mounted(){
-    console.log("create");
-    this.axios.get(`/api/model/${this.modelName}`).then(
+    if(this.$route.query.model != undefined){
+      this.axios.get(`/api/model/${this.modelName}`).then(
         result => {
           let tmp = result.data[0]._modeldata;
           if (tmp != 0) {
@@ -70,16 +70,12 @@ export default {
           } else {
             console.log("空内容");
           }
-          //console.log("data",result.data[0]._modeldata);
-          // do something
         },
         error => {
           console.error("error",error)
         }
     )
-
-      
-
+    }
   },
   methods: {
     ...mapMutations([

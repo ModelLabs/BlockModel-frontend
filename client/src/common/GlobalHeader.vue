@@ -51,7 +51,7 @@
       <p v-if="ifCodeError">Verification code timed out or error, please try again</p>
     </el-dialog>
 
-        <div class="avatar">
+        <div class="avatar" v-show="false">
           <!-- <span class="user-short-id">{{ shorUserId }}</span> -->
           <!--<router-link to="/profile">Profile</router-link>
            <el-avatar icon="el-icon-user-solid" class="avatar-icon"></el-avatar> -->
@@ -358,7 +358,7 @@ export default {
     }
     .login {
       float: right;
-      margin: 5px 50px 0px 50px;
+      margin: 20px 10px 0px 10px;
       cursor: pointer;
     }
     .el-button {

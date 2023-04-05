@@ -7,23 +7,6 @@
             <el-button class="btn-general small-btn small-btn-left" @click="POSITIONING_GRAPH()" icon="el-icon-full-screen"></el-button>
             <el-button class="btn-general small-btn small-btn-left" @click="UNDO_GRAPH()" icon="el-icon-back"></el-button>
             <el-button class="btn-general small-btn small-btn-left" @click="REDO_GRAPH()" icon="el-icon-right"></el-button>
-            <el-button class="btn-general small-btn small-btn-left" @click="downloadGraph()" icon="el-icon-download"></el-button>
-            <!-- <el-tooltip
-          class="tooltip"
-          content="Upload existing models"
-          placement="bottom"
-          effect="light"
-        >
-          <i @click="uploadGraph()" class="el-icon-upload2"></i>
-        </el-tooltip> -->
-        <!-- <el-tooltip
-          class="tooltip"
-          content="Download model"
-          placement="bottom"
-          effect="light"
-        >
-          <i @click="downloadGraph()" class="el-icon-download"></i>
-        </el-tooltip> -->
             </div>
             <div class="middle-btn">
             <el-button class="view-btn btn-general medium-btn" @click="openDataVisualization()" icon="el-icon-view"></el-button>
