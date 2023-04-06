@@ -45,6 +45,7 @@ export default {
         }
 
         .content-with-chart {
+          background-color:whitesmoke;
           width: 870px;
           height: 320px;
           border: 1px solid black;

@@ -62,8 +62,9 @@
                           <el-dialog
                               title="Policy Visual Setting"
                               :visible.sync="visualSettingVisible"
+                              :modal-append-to-body='true'
+                              :append-to-body='true'
                               
-                              :modal-append-to-body='false'
                               v-if="selectedPolicyIndex == index"
                               >
                               <PolicyVisual :edgeID="nodeId" :policyData="dynamicValidateForm_Policy" :policyIndex="index"/>

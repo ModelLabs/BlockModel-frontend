@@ -33,6 +33,7 @@ html,body,#app {
   height: 100%;
 }
 body {
+  overflow: scroll;
   background: -webkit-linear-gradient(top, rgba(184, 238, 248, 0.63), rgba(154, 126, 236, 0.42));
 }
 #app {

@@ -1545,7 +1545,7 @@ export default {
 .container {
   display: flex;
   flex-direction: column;
-  width: 1000xp;
+  overflow: scroll;
 }
 .tag-selection {
   width: 1000px;
@@ -1560,7 +1560,7 @@ export default {
 
 .select-type {
   width: 500px;
-  height: 110px;
+  height: 80px;
   overflow: scroll;
   float: left;
   text-align: left;
@@ -1611,7 +1611,7 @@ export default {
 }
 .select-token-kind {
   width: 500px;
-  height: 110px;
+  height: 80px;
   overflow: scroll;
   float: left;
   text-align: left;
@@ -1766,8 +1766,9 @@ export default {
 }
 .token-tag{
   width: 1000px;
-  height: 500px;
-  margin: auto;
+  height: 180px;
+  overflow: scroll;
+  margin:0 auto;
   /deep/ .el-tabs--card>.el-tabs__header .el-tabs__item {
     border-left: none;
   }
@@ -1793,7 +1794,7 @@ export default {
   overflow: scroll;
   float: left;
   text-align: left;
-  height: 110px;
+  height: 80px;
   .goal {
     background-color: #ECF5FF;
     color: #4777a7;
@@ -1803,7 +1804,7 @@ export default {
     color: white;
   }
   .tag-title {
-    margin: 10px 0px;
+    margin: 0px 0px;
     color: #4777a7;
   }
   .el-tag+.el-tag {
@@ -1834,7 +1835,7 @@ export default {
   overflow: scroll;
   float: left;
   text-align: left;
-  height: 110px;
+  height: 80px;
   .capabilities {
     background-color: #fef7eb;
     color: #b69357;
@@ -1844,7 +1845,7 @@ export default {
     color: white;
   }
   .tag-title {
-    margin: 10px 0px;
+    margin: 0px 0px;
     color: #b69357;
   }
   .el-tag+.el-tag {
@@ -1875,7 +1876,7 @@ export default {
   overflow: scroll;
   float: left;
   text-align: left;
-  height: 110px;
+  height: 80px;
   .velocity {
     background-color: #f2f9db;
     color: #a1b84d;
@@ -1885,7 +1886,7 @@ export default {
     color: white;
   }
   .tag-title {
-    margin: 10px 0px;
+    margin: 0px 0px;
     color: #a1b84d;
   }
   .el-tag+.el-tag {
@@ -1916,7 +1917,7 @@ export default {
   overflow: scroll;
   float: left;
   text-align: left;
-  height: 110px;
+  height: 80px;
   .distributionsTargets {
     background-color: #fad9e8;
     color: #a84774;
@@ -1926,7 +1927,7 @@ export default {
     color: white;
   }
   .tag-title {
-    margin: 10px 0px;
+    margin: 0px 0px;
     color: #a84774;
   }
   .el-tag+.el-tag {
@@ -1954,12 +1955,16 @@ export default {
   }
 }
 .btn {
-  margin: auto;
+  margin: 10px auto;
   width: 1000px;
   font-weight: 600;
   color: white;
   border: 0;
   background: -webkit-linear-gradient(left, #98d6f5, #d595fa);
+}
+.loading {
+  margin: 20px auto;
+  width: 1000px;
 }
 
 .btn:hover {
@@ -1967,7 +1972,7 @@ export default {
 }
 
 .communication {
-  height: 500px;
+  height: 450px;
   overflow: scroll;
 
   .ai-answer {

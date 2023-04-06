@@ -23,6 +23,7 @@ export default {
         }
 
         .content {
+          background-color: whitesmoke;
           width: 870px;
           height: 40px;
           margin-left: 50px;
