@@ -1,6 +1,7 @@
 <template >
   <el-collapse-transition>
     <div class="visual-panel">
+      <p v-if="running">The calculation data of the current model is being generated, please wait.</p>
       <!-- <span class="help"
         ><i class="el-icon-question" @click="helpShow = !helpShow"></i>
       </span> -->
@@ -174,6 +175,7 @@ import { mapState, mapMutations } from "vuex";
 export default {
   data() {
     return {
+      running:false,
       selectedData:false,
       // Select -  simulationId && Data 选择的折叠面板编号
       activeNames: ['1','2'],
@@ -1727,9 +1729,23 @@ export default {
       "propertyResult",
       "getHistoryDataFromIndexDB",
       "markerArray",
-      "indexList"
+      "indexList",
+      "simulating",
     ]),
   },
+  watch:{
+    simulating(o,n){
+      if(n===false && o===true){
+        this.running = true;
+      }
+      if(n===true && o===false){
+        this.running = false;
+      }
+
+        console.log("11111new",o);
+        console.log("11111old",n);
+    }
+  }
 };
 </script>
 <style lang="scss">
@@ -1737,6 +1753,9 @@ export default {
   text-align: center;
   overflow: scroll;
   background-color: #f5f5f5;
+  p {
+    margin-top: 10px;
+  }
   .help {
     position: absolute;
     top: 20px;

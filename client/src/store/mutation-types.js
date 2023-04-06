@@ -1,5 +1,5 @@
 // mutations函数操作定义
-
+export const CHANGE_SIMULATING = 'CHANGE_SIMULATING'
 //画布相关
 export const INIT_GRAPH = 'INIT_GRAPH'
 export const ZOOM_GRAPH = 'ZOOM_GRAPH'

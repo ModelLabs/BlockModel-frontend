@@ -9,6 +9,7 @@ const state = {
     // 测算引擎
     model: null,
     editNode: null,
+    simulating:false,
     //系统参数
     configData: {
         simulationDays: 0,

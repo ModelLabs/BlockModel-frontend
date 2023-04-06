@@ -20,8 +20,8 @@
                 <el-tooltip class="item" effect="light" content="Visualization" placement="top">
                     <el-button class="view-btn btn-general medium-btn" @click="openDataVisualization()" icon="el-icon-view"></el-button>
                 </el-tooltip>
-                <el-tooltip class="item" effect="light" content="Start Simulation" placement="top">
-                    <el-button  class="start-btn btn-general">
+                 <el-tooltip class="item" effect="light" content="Start Simulation" placement="top">
+                    <el-button class="start-btn btn-general">
                         <i v-if="start" @click="startSimulation()" class="el-icon-video-play"></i>
                         <i v-else class="el-icon-loading"></i>
                     </el-button>
@@ -66,6 +66,7 @@ export default {
         return {
             curDay:0,
             start:true,
+            loading:false,
         };
     },
     methods: {
@@ -94,6 +95,7 @@ export default {
             "ADD_SELECT_NODES_DATA",
             "ADD_SELECT_VISUAL_DATA",
             "ADD_SELECT_PROPERTY_DATA",
+            "CHANGE_SIMULATING",
         ]),
         /**
     下载当前模型为json文件
@@ -321,6 +323,12 @@ export default {
          开始测算
         */
         async startSimulation() {
+<<<<<<< Updated upstream
+=======
+            // 测算开始，开启 loading 图标
+            this.start = false;
+            this.CHANGE_SIMULATING(true);
+>>>>>>> Stashed changes
             // 正常测算结束后，restart前重置model实例
             if(this.model != null){
                 // 将当前模型置为 null
@@ -399,6 +407,8 @@ export default {
 
                 // 存历史模型到总的表
                 await this.updateHistoryModelData();
+
+                this.CHANGE_SIMULATING(false);
             }
 
             //  测算终止（正常终止 / 暂停终止），关闭 loading 图标
