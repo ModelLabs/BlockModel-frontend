@@ -323,12 +323,9 @@ export default {
          开始测算
         */
         async startSimulation() {
-<<<<<<< Updated upstream
-=======
             // 测算开始，开启 loading 图标
             this.start = false;
             this.CHANGE_SIMULATING(true);
->>>>>>> Stashed changes
             // 正常测算结束后，restart前重置model实例
             if(this.model != null){
                 // 将当前模型置为 null

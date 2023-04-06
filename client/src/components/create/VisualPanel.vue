@@ -1,7 +1,7 @@
 <template >
   <el-collapse-transition>
     <div class="visual-panel">
-      <p v-if="running">The calculation data of the current model is being generated, please wait.</p>
+      <p v-if="running">The simulation data of the current model is being generated, please wait.</p>
       <!-- <span class="help"
         ><i class="el-icon-question" @click="helpShow = !helpShow"></i>
       </span> -->
