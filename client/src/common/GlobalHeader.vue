@@ -247,8 +247,6 @@ export default {
     logout() {
       this.SET_USER(null);
       this.SET_USER_EMAIL(null);
-      removeStore("user");
-      removeStore("user_email");
     },
     async sendCode(email){
       this.sendLoading = true;
