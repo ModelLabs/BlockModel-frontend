@@ -391,6 +391,7 @@
   </div>
 </template>
 <script>
+import { mapState, mapMutations, mapActions } from "vuex";
 import UserPart from '../components/AI/UserPart.vue'
 import AIPart from '../components/AI/AIPart.vue'
 import { percentageToNumber, checkSumObj, checkSumArray, getRandomInt} from "../utils/numberUtil";
@@ -716,259 +717,266 @@ export default {
       }
     },
     btnClick(){
-      this.showLoading = true;
-      this.showChat = false;
-      this.showInput = false;
+      console.log("user:", this.user, ", user_email:", this.userEmail);
+      if (this.user != null && this.userEmail != null) {
+        this.showLoading = true;
+        this.showChat = false;
+        this.showInput = false;
 
-      // 清理全局变量数据
-      this.questions = new Array();
-      this.selectedTypeTag = "";
-      this.selectedTokenKindTag = "";
+        // 清理全局变量数据
+        this.questions = new Array();
+        this.selectedTypeTag = "";
+        this.selectedTokenKindTag = "";
 
-          // 只有一种 token && 第一个 token
-      let goalTag = "", capabilitiesTag = "", velocityTag = "", distributionsTargetsTag = "",
-          // 两种 token，第一个 && 第二个 F:first S:second
-          twoFgoalTag = "", twoFcapabilitiesTag = "", twoFvelocityTag = "", twoFdistributionsTargetsTag = "",
-          twoSgoalTag = "", twoScapabilitiesTag = "", twoSvelocityTag = "", twoSdistributionsTargetsTag = "",
-          // 三种 token，第一个 && 第二个 && 第三个 F:first S:second T:third
-          threeFgoalTag = "", threeFcapabilitiesTag = "", threeFvelocityTag = "", threeFdistributionsTargetsTag = "",
-          threeSgoalTag = "", threeScapabilitiesTag = "", threeSvelocityTag = "", threeSdistributionsTargetsTag = "",
-          threeTgoalTag = "", threeTcapabilitiesTag = "", threeTvelocityTag = "", threeTdistributionsTargetsTag = "";
+            // 只有一种 token && 第一个 token
+        let goalTag = "", capabilitiesTag = "", velocityTag = "", distributionsTargetsTag = "",
+            // 两种 token，第一个 && 第二个 F:first S:second
+            twoFgoalTag = "", twoFcapabilitiesTag = "", twoFvelocityTag = "", twoFdistributionsTargetsTag = "",
+            twoSgoalTag = "", twoScapabilitiesTag = "", twoSvelocityTag = "", twoSdistributionsTargetsTag = "",
+            // 三种 token，第一个 && 第二个 && 第三个 F:first S:second T:third
+            threeFgoalTag = "", threeFcapabilitiesTag = "", threeFvelocityTag = "", threeFdistributionsTargetsTag = "",
+            threeSgoalTag = "", threeScapabilitiesTag = "", threeSvelocityTag = "", threeSdistributionsTargetsTag = "",
+            threeTgoalTag = "", threeTcapabilitiesTag = "", threeTvelocityTag = "", threeTdistributionsTargetsTag = "";
 
-      for (var val in this.typeTags) {
-        if (this.typeTags[val].active) {
-          this.selectedTypeTag = this.selectedTypeTag + this.typeTags[val].name + ',';
+        for (var val in this.typeTags) {
+          if (this.typeTags[val].active) {
+            this.selectedTypeTag = this.selectedTypeTag + this.typeTags[val].name + ',';
+          }
         }
-      }
-      if (this.selectedTypeTag == "") {
-        this.$message({
-          showClose: true,
-          message: 'Please select at least one tag of your project type',
-          type: 'error'
-        });
-      }
-
-      for (val in this.tokenKindTags) {
-        if (this.tokenKindTags[val].active) {
-          this.selectedTokenKindTag = this.tokenKindTags[val].name;
-        }
-      }
-      if (this.selectedTokenKindTag == "") {
-        this.$message({
-          showClose: true,
-          message: 'Please select at least one tag of your token system',
-          type: 'error'
-        });
-      }
-
-      switch(this.selectedTokenKindTag){
-        case "":
+        if (this.selectedTypeTag == "") {
           this.$message({
             showClose: true,
-            message: 'Please select at least one tag of each category',
+            message: 'Please select at least one tag of your project type',
             type: 'error'
           });
-          break;
-        case "One-Token":
-          for (val in this.tokenTags.one.goalTags) {
-            if (this.tokenTags.one.goalTags[val].active) {
-              goalTag = goalTag + this.tokenTags.one.goalTags[val].name + ',';
-            }
-          }
-          for (val in this.tokenTags.one.capabilitiesTags) {
-            if (this.tokenTags.one.capabilitiesTags[val].active) {
-              capabilitiesTag = capabilitiesTag + this.tokenTags.one.capabilitiesTags[val].name + ',';
-            }
-          }
+        }
 
-          for (val in this.tokenTags.one.velocityTags) {
-            if (this.tokenTags.one.velocityTags[val].active) {
-              velocityTag = velocityTag + this.tokenTags.one.velocityTags[val].name + ',';
-            }
+        for (val in this.tokenKindTags) {
+          if (this.tokenKindTags[val].active) {
+            this.selectedTokenKindTag = this.tokenKindTags[val].name;
           }
-          
-          for (val in this.tokenTags.one.distributionsTargetsTags) {
-            if (this.tokenTags.one.distributionsTargetsTags[val].active) {
-              distributionsTargetsTag = distributionsTargetsTag + this.tokenTags.one.distributionsTargetsTags[val].name + ',';
-            }
-          }
-          if(goalTag === "" | capabilitiesTag === "" | velocityTag === "" | distributionsTargetsTag === "") {
+        }
+        if (this.selectedTokenKindTag == "") {
+          this.$message({
+            showClose: true,
+            message: 'Please select at least one tag of your token system',
+            type: 'error'
+          });
+        }
+
+        switch(this.selectedTokenKindTag){
+          case "":
             this.$message({
               showClose: true,
               message: 'Please select at least one tag of each category',
               type: 'error'
             });
-          }
-          // 组装语句
-          else {
-            let question = 'The goal of this token is ['+ goalTag +']. Its capability includes ['+ capabilitiesTag + ']. Its Token Distribution Targets have ['+ distributionsTargetsTag + ']. The Token Velocity should be [' + velocityTag + ']. Please answer the following questions in JSON format only, no preambles, explanations or caveats are required: (1) Please design Token\'s Basic Information, including token\'s symbol, token\'s initial supply and token\'s inflation rate. Please organize your reply in JSON format like " "basic_info" : {"symbol": "A", "initial_supply": 1000, "inflation": {"base_rate": 0.05, "min_rate": 0.02, "max_rate": 0.1}} ". (2) Please help me designing Target Allocation, which shows what percentage of total tokens that each distribution target can get. Please organize your data in JSON format like " "allocation": {"airdrop": "10%", ...} ". (3) Please help me designing a vesting schedule within [1825 days]. For each distribution target, it shows release cliff (in days), release frequency (in days), and percentage of tokens that will be released each time. Remember, for each target, the sum of all percentages should equal to 100%. Please organize your data in JSON format like " "vesting": [{"target": "liquidity_mining", “cliff”: “30”, “frequency”: “180”, “percentage”:[“10%”, ...]},…] ".'; 
-            this.questions.push(question);
-          }
-          break;
-        case "Two-Token":
-          for (val in this.tokenTags.two.firstToken.goalTags) {
-            if (this.tokenTags.two.firstToken.goalTags[val].active) {
-              twoFgoalTag = twoFgoalTag + this.tokenTags.two.firstToken.goalTags[val].name + ',';
+            break;
+          case "One-Token":
+            for (val in this.tokenTags.one.goalTags) {
+              if (this.tokenTags.one.goalTags[val].active) {
+                goalTag = goalTag + this.tokenTags.one.goalTags[val].name + ',';
+              }
             }
-          }
-          
-          for (val in this.tokenTags.two.firstToken.capabilitiesTags) {
-            if (this.tokenTags.two.firstToken.capabilitiesTags[val].active) {
-              twoFcapabilitiesTag = twoFcapabilitiesTag + this.tokenTags.two.firstToken.capabilitiesTags[val].name + ',';
+            for (val in this.tokenTags.one.capabilitiesTags) {
+              if (this.tokenTags.one.capabilitiesTags[val].active) {
+                capabilitiesTag = capabilitiesTag + this.tokenTags.one.capabilitiesTags[val].name + ',';
+              }
             }
-          }
 
-          for (val in this.tokenTags.two.firstToken.velocityTags) {
-            if (this.tokenTags.two.firstToken.velocityTags[val].active) {
-              twoFvelocityTag = twoFvelocityTag + this.tokenTags.two.firstToken.velocityTags[val].name + ',';
+            for (val in this.tokenTags.one.velocityTags) {
+              if (this.tokenTags.one.velocityTags[val].active) {
+                velocityTag = velocityTag + this.tokenTags.one.velocityTags[val].name + ',';
+              }
             }
-          }
-          
-          for (val in this.tokenTags.two.firstToken.distributionsTargetsTags) {
-            if (this.tokenTags.two.firstToken.distributionsTargetsTags[val].active) {
-              twoFdistributionsTargetsTag = twoFdistributionsTargetsTag + this.tokenTags.two.firstToken.distributionsTargetsTags[val].name + ',';
+            
+            for (val in this.tokenTags.one.distributionsTargetsTags) {
+              if (this.tokenTags.one.distributionsTargetsTags[val].active) {
+                distributionsTargetsTag = distributionsTargetsTag + this.tokenTags.one.distributionsTargetsTags[val].name + ',';
+              }
             }
-          }
-          //
-          for (val in this.tokenTags.two.secondToken.goalTags) {
-            if (this.tokenTags.two.secondToken.goalTags[val].active) {
-              twoSgoalTag = twoSgoalTag + this.tokenTags.two.secondToken.goalTags[val].name + ',';
+            if(goalTag === "" | capabilitiesTag === "" | velocityTag === "" | distributionsTargetsTag === "") {
+              this.$message({
+                showClose: true,
+                message: 'Please select at least one tag of each category',
+                type: 'error'
+              });
             }
-          }
-          
-          for (val in this.tokenTags.two.secondToken.capabilitiesTags) {
-            if (this.tokenTags.two.secondToken.capabilitiesTags[val].active) {
-              twoScapabilitiesTag = twoScapabilitiesTag + this.tokenTags.two.secondToken.capabilitiesTags[val].name + ',';
+            // 组装语句
+            else {
+              let question = 'The goal of this token is ['+ goalTag +']. Its capability includes ['+ capabilitiesTag + ']. Its Token Distribution Targets have ['+ distributionsTargetsTag + ']. The Token Velocity should be [' + velocityTag + ']. Please answer the following questions in JSON format only, no preambles, explanations or caveats are required: (1) Please design Token\'s Basic Information, including token\'s symbol, token\'s initial supply and token\'s inflation rate. Please organize your reply in JSON format like " "basic_info" : {"symbol": "A", "initial_supply": 1000, "inflation": {"base_rate": 0.05, "min_rate": 0.02, "max_rate": 0.1}} ". (2) Please help me designing Target Allocation, which shows what percentage of total tokens that each distribution target can get. Please organize your data in JSON format like " "allocation": {"airdrop": "10%", ...} ". (3) Please help me designing a vesting schedule within [1825 days]. For each distribution target, it shows release cliff (in days), release frequency (in days), and percentage of tokens that will be released each time. Remember, for each target, the sum of all percentages should equal to 100%. Please organize your data in JSON format like " "vesting": [{"target": "liquidity_mining", “cliff”: “30”, “frequency”: “180”, “percentage”:[“10%”, ...]},…] ".'; 
+              this.questions.push(question);
             }
-          }
+            break;
+          case "Two-Token":
+            for (val in this.tokenTags.two.firstToken.goalTags) {
+              if (this.tokenTags.two.firstToken.goalTags[val].active) {
+                twoFgoalTag = twoFgoalTag + this.tokenTags.two.firstToken.goalTags[val].name + ',';
+              }
+            }
+            
+            for (val in this.tokenTags.two.firstToken.capabilitiesTags) {
+              if (this.tokenTags.two.firstToken.capabilitiesTags[val].active) {
+                twoFcapabilitiesTag = twoFcapabilitiesTag + this.tokenTags.two.firstToken.capabilitiesTags[val].name + ',';
+              }
+            }
 
-          for (val in this.tokenTags.two.secondToken.velocityTags) {
-            if (this.tokenTags.two.secondToken.velocityTags[val].active) {
-              twoSvelocityTag = twoSvelocityTag + this.tokenTags.two.secondToken.velocityTags[val].name + ',';
+            for (val in this.tokenTags.two.firstToken.velocityTags) {
+              if (this.tokenTags.two.firstToken.velocityTags[val].active) {
+                twoFvelocityTag = twoFvelocityTag + this.tokenTags.two.firstToken.velocityTags[val].name + ',';
+              }
             }
-          }
-          
-          for (val in this.tokenTags.two.secondToken.distributionsTargetsTags) {
-            if (this.tokenTags.two.secondToken.distributionsTargetsTags[val].active) {
-              twoSdistributionsTargetsTag = twoSdistributionsTargetsTag + this.tokenTags.two.secondToken.distributionsTargetsTags[val].name + ',';
+            
+            for (val in this.tokenTags.two.firstToken.distributionsTargetsTags) {
+              if (this.tokenTags.two.firstToken.distributionsTargetsTags[val].active) {
+                twoFdistributionsTargetsTag = twoFdistributionsTargetsTag + this.tokenTags.two.firstToken.distributionsTargetsTags[val].name + ',';
+              }
             }
-          }
+            //
+            for (val in this.tokenTags.two.secondToken.goalTags) {
+              if (this.tokenTags.two.secondToken.goalTags[val].active) {
+                twoSgoalTag = twoSgoalTag + this.tokenTags.two.secondToken.goalTags[val].name + ',';
+              }
+            }
+            
+            for (val in this.tokenTags.two.secondToken.capabilitiesTags) {
+              if (this.tokenTags.two.secondToken.capabilitiesTags[val].active) {
+                twoScapabilitiesTag = twoScapabilitiesTag + this.tokenTags.two.secondToken.capabilitiesTags[val].name + ',';
+              }
+            }
 
-          if(twoFgoalTag === "" | twoFcapabilitiesTag === "" | twoFvelocityTag === "" | twoFdistributionsTargetsTag === "" |
-             twoSgoalTag === "" | twoScapabilitiesTag === "" | twoSvelocityTag === "" | twoSdistributionsTargetsTag === ""
-          ) {
-            this.$message({
-              showClose: true,
-              message: 'Please select at least one tag of each category',
-              type: 'error'
-            });
-          }
-          // 组装语句 Continue
-          else {
-            let question1 = 'The goal of first token is ['+ twoFgoalTag +']. Its capability includes ['+ twoFcapabilitiesTag + ']. Its Token Distribution Targets have ['+ twoFdistributionsTargetsTag + ']. The Token Velocity should be [' + twoFvelocityTag + ']. Please answer the following questions in JSON format only, no preambles, explanations or caveats are required: (1) Please design Token\'s Basic Information, including token\'s symbol, token\'s initial supply and token\'s inflation rate. Please organize your reply in JSON format like " "basic_info" : {"symbol": "A", "initial_supply": 1000, "inflation": {"base_rate": 0.05, "min_rate": 0.02, "max_rate": 0.1}} ". (2) Please help me designing Target Allocation, which shows what percentage of total tokens that each distribution target can get. Please organize your data in JSON format like " "allocation": {"airdrop": "10%", ...} ". (3) Please help me designing a vesting schedule within [1825 days]. For each distribution target, it shows release cliff (in days), release frequency (in days), and percentage of tokens that will be released each time. Remember, for each target, the sum of all percentages should equal to 100%. Please organize your data in JSON format like " "vesting": [{"target": "liquidity_mining", “cliff”: “30”, “frequency”: “180”, “percentage”:[“10%”, ...]},…] ".'; 
-            this.questions.push(question1);
-            let question2 = 'The goal of second token is ['+ twoSgoalTag +']. Its capability includes ['+ twoScapabilitiesTag + ']. Its Token Distribution Targets have ['+ twoSdistributionsTargetsTag + ']. The Token Velocity should be [' + twoSvelocityTag + ']. Please answer the following questions in JSON format only, no preambles, explanations or caveats are required: (1) Please design Token\'s Basic Information, including token\'s symbol, token\'s initial supply and token\'s inflation rate. Please organize your reply in JSON format like " "basic_info" : {"symbol": "A", "initial_supply": 1000, "inflation": {"base_rate": 0.05, "min_rate": 0.02, "max_rate": 0.1}} ". (2) Please help me designing Target Allocation, which shows what percentage of total tokens that each distribution target can get. Please organize your data in JSON format like " "allocation": {"airdrop": "10%", ...} ". (3) Please help me designing a vesting schedule within [1825 days]. For each distribution target, it shows release cliff (in days), release frequency (in days), and percentage of tokens that will be released each time. Remember, for each target, the sum of all percentages should equal to 100%. Please organize your data in JSON format like " "vesting": [{"target": "liquidity_mining", “cliff”: “30”, “frequency”: “180”, “percentage”:[“10%”, ...]},…] ".'; 
-            this.questions.push(question2);
-          }
-          break;
-        case "Three-Token":
-          for (val in this.tokenTags.three.firstToken.goalTags) {
-            if (this.tokenTags.three.firstToken.goalTags[val].active) {
-              threeFgoalTag = threeFgoalTag + this.tokenTags.three.firstToken.goalTags[val].name + ',';
+            for (val in this.tokenTags.two.secondToken.velocityTags) {
+              if (this.tokenTags.two.secondToken.velocityTags[val].active) {
+                twoSvelocityTag = twoSvelocityTag + this.tokenTags.two.secondToken.velocityTags[val].name + ',';
+              }
             }
-          }
-          
-          for (val in this.tokenTags.three.firstToken.capabilitiesTags) {
-            if (this.tokenTags.three.firstToken.capabilitiesTags[val].active) {
-              threeFcapabilitiesTag = threeFcapabilitiesTag + this.tokenTags.three.firstToken.capabilitiesTags[val].name + ',';
+            
+            for (val in this.tokenTags.two.secondToken.distributionsTargetsTags) {
+              if (this.tokenTags.two.secondToken.distributionsTargetsTags[val].active) {
+                twoSdistributionsTargetsTag = twoSdistributionsTargetsTag + this.tokenTags.two.secondToken.distributionsTargetsTags[val].name + ',';
+              }
             }
-          }
 
-          for (val in this.tokenTags.three.firstToken.velocityTags) {
-            if (this.tokenTags.three.firstToken.velocityTags[val].active) {
-              threeFvelocityTag = threeFvelocityTag + this.tokenTags.three.firstToken.velocityTags[val].name + ',';
+            if(twoFgoalTag === "" | twoFcapabilitiesTag === "" | twoFvelocityTag === "" | twoFdistributionsTargetsTag === "" |
+              twoSgoalTag === "" | twoScapabilitiesTag === "" | twoSvelocityTag === "" | twoSdistributionsTargetsTag === ""
+            ) {
+              this.$message({
+                showClose: true,
+                message: 'Please select at least one tag of each category',
+                type: 'error'
+              });
             }
-          }
-          
-          for (val in this.tokenTags.three.firstToken.distributionsTargetsTags) {
-            if (this.tokenTags.three.firstToken.distributionsTargetsTags[val].active) {
-              threeFdistributionsTargetsTag = threeFdistributionsTargetsTag + this.tokenTags.three.firstToken.distributionsTargetsTags[val].name + ',';
+            // 组装语句 Continue
+            else {
+              let question1 = 'The goal of first token is ['+ twoFgoalTag +']. Its capability includes ['+ twoFcapabilitiesTag + ']. Its Token Distribution Targets have ['+ twoFdistributionsTargetsTag + ']. The Token Velocity should be [' + twoFvelocityTag + ']. Please answer the following questions in JSON format only, no preambles, explanations or caveats are required: (1) Please design Token\'s Basic Information, including token\'s symbol, token\'s initial supply and token\'s inflation rate. Please organize your reply in JSON format like " "basic_info" : {"symbol": "A", "initial_supply": 1000, "inflation": {"base_rate": 0.05, "min_rate": 0.02, "max_rate": 0.1}} ". (2) Please help me designing Target Allocation, which shows what percentage of total tokens that each distribution target can get. Please organize your data in JSON format like " "allocation": {"airdrop": "10%", ...} ". (3) Please help me designing a vesting schedule within [1825 days]. For each distribution target, it shows release cliff (in days), release frequency (in days), and percentage of tokens that will be released each time. Remember, for each target, the sum of all percentages should equal to 100%. Please organize your data in JSON format like " "vesting": [{"target": "liquidity_mining", “cliff”: “30”, “frequency”: “180”, “percentage”:[“10%”, ...]},…] ".'; 
+              this.questions.push(question1);
+              let question2 = 'The goal of second token is ['+ twoSgoalTag +']. Its capability includes ['+ twoScapabilitiesTag + ']. Its Token Distribution Targets have ['+ twoSdistributionsTargetsTag + ']. The Token Velocity should be [' + twoSvelocityTag + ']. Please answer the following questions in JSON format only, no preambles, explanations or caveats are required: (1) Please design Token\'s Basic Information, including token\'s symbol, token\'s initial supply and token\'s inflation rate. Please organize your reply in JSON format like " "basic_info" : {"symbol": "A", "initial_supply": 1000, "inflation": {"base_rate": 0.05, "min_rate": 0.02, "max_rate": 0.1}} ". (2) Please help me designing Target Allocation, which shows what percentage of total tokens that each distribution target can get. Please organize your data in JSON format like " "allocation": {"airdrop": "10%", ...} ". (3) Please help me designing a vesting schedule within [1825 days]. For each distribution target, it shows release cliff (in days), release frequency (in days), and percentage of tokens that will be released each time. Remember, for each target, the sum of all percentages should equal to 100%. Please organize your data in JSON format like " "vesting": [{"target": "liquidity_mining", “cliff”: “30”, “frequency”: “180”, “percentage”:[“10%”, ...]},…] ".'; 
+              this.questions.push(question2);
             }
-          }
-          //
-          for (val in this.tokenTags.three.secondToken.goalTags) {
-            if (this.tokenTags.three.secondToken.goalTags[val].active) {
-              threeSgoalTag = threeSgoalTag + this.tokenTags.three.secondToken.goalTags[val].name + ',';
+            break;
+          case "Three-Token":
+            for (val in this.tokenTags.three.firstToken.goalTags) {
+              if (this.tokenTags.three.firstToken.goalTags[val].active) {
+                threeFgoalTag = threeFgoalTag + this.tokenTags.three.firstToken.goalTags[val].name + ',';
+              }
             }
-          }
-          
-          for (val in this.tokenTags.three.secondToken.capabilitiesTags) {
-            if (this.tokenTags.three.secondToken.capabilitiesTags[val].active) {
-              threeScapabilitiesTag = threeScapabilitiesTag + this.tokenTags.three.secondToken.capabilitiesTags[val].name + ',';
+            
+            for (val in this.tokenTags.three.firstToken.capabilitiesTags) {
+              if (this.tokenTags.three.firstToken.capabilitiesTags[val].active) {
+                threeFcapabilitiesTag = threeFcapabilitiesTag + this.tokenTags.three.firstToken.capabilitiesTags[val].name + ',';
+              }
             }
-          }
 
-          for (val in this.tokenTags.three.secondToken.velocityTags) {
-            if (this.tokenTags.three.secondToken.velocityTags[val].active) {
-              threeSvelocityTag = threeSvelocityTag + this.tokenTags.three.secondToken.velocityTags[val].name + ',';
+            for (val in this.tokenTags.three.firstToken.velocityTags) {
+              if (this.tokenTags.three.firstToken.velocityTags[val].active) {
+                threeFvelocityTag = threeFvelocityTag + this.tokenTags.three.firstToken.velocityTags[val].name + ',';
+              }
             }
-          }
-          
-          for (val in this.tokenTags.three.secondToken.distributionsTargetsTags) {
-            if (this.tokenTags.three.secondToken.distributionsTargetsTags[val].active) {
-              threeSdistributionsTargetsTag = threeSdistributionsTargetsTag + this.tokenTags.three.secondToken.distributionsTargetsTags[val].name + ',';
+            
+            for (val in this.tokenTags.three.firstToken.distributionsTargetsTags) {
+              if (this.tokenTags.three.firstToken.distributionsTargetsTags[val].active) {
+                threeFdistributionsTargetsTag = threeFdistributionsTargetsTag + this.tokenTags.three.firstToken.distributionsTargetsTags[val].name + ',';
+              }
             }
-          }
-          //
-          for (val in this.tokenTags.three.thirdToken.goalTags) {
-            if (this.tokenTags.three.thirdToken.goalTags[val].active) {
-              threeTgoalTag = threeTgoalTag + this.tokenTags.three.thirdToken.goalTags[val].name + ',';
+            //
+            for (val in this.tokenTags.three.secondToken.goalTags) {
+              if (this.tokenTags.three.secondToken.goalTags[val].active) {
+                threeSgoalTag = threeSgoalTag + this.tokenTags.three.secondToken.goalTags[val].name + ',';
+              }
             }
-          }
-          
-          for (val in this.tokenTags.three.thirdToken.capabilitiesTags) {
-            if (this.tokenTags.three.thirdToken.capabilitiesTags[val].active) {
-              threeTcapabilitiesTag = threeTcapabilitiesTag + this.tokenTags.three.thirdToken.capabilitiesTags[val].name + ',';
+            
+            for (val in this.tokenTags.three.secondToken.capabilitiesTags) {
+              if (this.tokenTags.three.secondToken.capabilitiesTags[val].active) {
+                threeScapabilitiesTag = threeScapabilitiesTag + this.tokenTags.three.secondToken.capabilitiesTags[val].name + ',';
+              }
             }
-          }
 
-          for (val in this.tokenTags.three.thirdToken.velocityTags) {
-            if (this.tokenTags.three.thirdToken.velocityTags[val].active) {
-              threeTvelocityTag = threeTvelocityTag + this.tokenTags.three.thirdToken.velocityTags[val].name + ',';
+            for (val in this.tokenTags.three.secondToken.velocityTags) {
+              if (this.tokenTags.three.secondToken.velocityTags[val].active) {
+                threeSvelocityTag = threeSvelocityTag + this.tokenTags.three.secondToken.velocityTags[val].name + ',';
+              }
             }
-          }
-          
-          for (val in this.tokenTags.three.thirdToken.distributionsTargetsTags) {
-            if (this.tokenTags.three.thirdToken.distributionsTargetsTags[val].active) {
-              threeTdistributionsTargetsTag = threeTdistributionsTargetsTag + this.tokenTags.three.thirdToken.distributionsTargetsTags[val].name + ',';
+            
+            for (val in this.tokenTags.three.secondToken.distributionsTargetsTags) {
+              if (this.tokenTags.three.secondToken.distributionsTargetsTags[val].active) {
+                threeSdistributionsTargetsTag = threeSdistributionsTargetsTag + this.tokenTags.three.secondToken.distributionsTargetsTags[val].name + ',';
+              }
             }
-          }
-          if(threeFgoalTag === "" | threeFcapabilitiesTag === "" | threeFvelocityTag === "" | threeFdistributionsTargetsTag === "" |
-             threeSgoalTag === "" | threeScapabilitiesTag === "" | threeSvelocityTag === "" | threeSdistributionsTargetsTag === "" |
-             threeTgoalTag === "" | threeTcapabilitiesTag === "" | threeTvelocityTag === "" | threeTdistributionsTargetsTag === ""
-          ) {
-            this.$message({
-              showClose: true,
-              message: 'Please select at least one tag of each category',
-              type: 'error'
-            });
-          }
-          // 组装语句 Continue
-          else {
-            let question1 = 'The goal of first token is ['+ threeFgoalTag +']. Its capability includes ['+ threeFcapabilitiesTag + ']. Its Token Distribution Targets have ['+ threeFdistributionsTargetsTag + ']. The Token Velocity should be [' + threeFvelocityTag + ']. Please answer the following questions in JSON format only, no preambles, explanations or caveats are required: (1) Please design Token\'s Basic Information, including token\'s symbol, token\'s initial supply and token\'s inflation rate. Please organize your reply in JSON format like " "basic_info" : {"symbol": "A", "initial_supply": 1000, "inflation": {"base_rate": 0.05, "min_rate": 0.02, "max_rate": 0.1}} ". (2) Please help me designing Target Allocation, which shows what percentage of total tokens that each distribution target can get. Please organize your data in JSON format like " "allocation": {"airdrop": "10%", ...} ". (3) Please help me designing a vesting schedule within [1825 days]. For each distribution target, it shows release cliff (in days), release frequency (in days), and percentage of tokens that will be released each time. Remember, for each target, the sum of all percentages should equal to 100%. Please organize your data in JSON format like " "vesting": [{"target": "liquidity_mining", “cliff”: “30”, “frequency”: “180”, “percentage”:[“10%”, ...]},…] ".'; 
-            this.questions.push(question1);
-            let question2 = 'The goal of second token is ['+ threeSgoalTag +']. Its capability includes ['+ threeScapabilitiesTag + ']. Its Token Distribution Targets have ['+ threeSdistributionsTargetsTag + ']. The Token Velocity should be [' + threeSvelocityTag + ']. Please answer the following questions in JSON format only, no preambles, explanations or caveats are required: (1) Please design Token\'s Basic Information, including token\'s symbol, token\'s initial supply and token\'s inflation rate. Please organize your reply in JSON format like " "basic_info" : {"symbol": "A", "initial_supply": 1000, "inflation": {"base_rate": 0.05, "min_rate": 0.02, "max_rate": 0.1}} ". (2) Please help me designing Target Allocation, which shows what percentage of total tokens that each distribution target can get. Please organize your data in JSON format like " "allocation": {"airdrop": "10%", ...} ". (3) Please help me designing a vesting schedule within [1825 days]. For each distribution target, it shows release cliff (in days), release frequency (in days), and percentage of tokens that will be released each time. Remember, for each target, the sum of all percentages should equal to 100%. Please organize your data in JSON format like " "vesting": [{"target": "liquidity_mining", “cliff”: “30”, “frequency”: “180”, “percentage”:[“10%”, ...]},…] ".'; 
-            this.questions.push(question2);
-            let question3 = 'The goal of third token is ['+ threeTgoalTag +']. Its capability includes ['+ threeTcapabilitiesTag + ']. Its Token Distribution Targets have ['+ threeTdistributionsTargetsTag + ']. The Token Velocity should be [' + threeTvelocityTag + ']. Please answer the following questions in JSON format only, no preambles, explanations or caveats are required: (1) Please design Token\'s Basic Information, including token\'s symbol, token\'s initial supply and token\'s inflation rate. Please organize your reply in JSON format like " "basic_info" : {"symbol": "A", "initial_supply": 1000, "inflation": {"base_rate": 0.05, "min_rate": 0.02, "max_rate": 0.1}} ". (2) Please help me designing Target Allocation, which shows what percentage of total tokens that each distribution target can get. Please organize your data in JSON format like " "allocation": {"airdrop": "10%", ...} ". (3) Please help me designing a vesting schedule within [1825 days]. For each distribution target, it shows release cliff (in days), release frequency (in days), and percentage of tokens that will be released each time. Remember, for each target, the sum of all percentages should equal to 100%. Please organize your data in JSON format like " "vesting": [{"target": "liquidity_mining", “cliff”: “30”, “frequency”: “180”, “percentage”:[“10%”, ...]},…] ".'; 
-            this.questions.push(question3);
-          }
-          break;
-        default:
-          break;
+            //
+            for (val in this.tokenTags.three.thirdToken.goalTags) {
+              if (this.tokenTags.three.thirdToken.goalTags[val].active) {
+                threeTgoalTag = threeTgoalTag + this.tokenTags.three.thirdToken.goalTags[val].name + ',';
+              }
+            }
+            
+            for (val in this.tokenTags.three.thirdToken.capabilitiesTags) {
+              if (this.tokenTags.three.thirdToken.capabilitiesTags[val].active) {
+                threeTcapabilitiesTag = threeTcapabilitiesTag + this.tokenTags.three.thirdToken.capabilitiesTags[val].name + ',';
+              }
+            }
+
+            for (val in this.tokenTags.three.thirdToken.velocityTags) {
+              if (this.tokenTags.three.thirdToken.velocityTags[val].active) {
+                threeTvelocityTag = threeTvelocityTag + this.tokenTags.three.thirdToken.velocityTags[val].name + ',';
+              }
+            }
+            
+            for (val in this.tokenTags.three.thirdToken.distributionsTargetsTags) {
+              if (this.tokenTags.three.thirdToken.distributionsTargetsTags[val].active) {
+                threeTdistributionsTargetsTag = threeTdistributionsTargetsTag + this.tokenTags.three.thirdToken.distributionsTargetsTags[val].name + ',';
+              }
+            }
+            if(threeFgoalTag === "" | threeFcapabilitiesTag === "" | threeFvelocityTag === "" | threeFdistributionsTargetsTag === "" |
+              threeSgoalTag === "" | threeScapabilitiesTag === "" | threeSvelocityTag === "" | threeSdistributionsTargetsTag === "" |
+              threeTgoalTag === "" | threeTcapabilitiesTag === "" | threeTvelocityTag === "" | threeTdistributionsTargetsTag === ""
+            ) {
+              this.$message({
+                showClose: true,
+                message: 'Please select at least one tag of each category',
+                type: 'error'
+              });
+            }
+            // 组装语句 Continue
+            else {
+              let question1 = 'The goal of first token is ['+ threeFgoalTag +']. Its capability includes ['+ threeFcapabilitiesTag + ']. Its Token Distribution Targets have ['+ threeFdistributionsTargetsTag + ']. The Token Velocity should be [' + threeFvelocityTag + ']. Please answer the following questions in JSON format only, no preambles, explanations or caveats are required: (1) Please design Token\'s Basic Information, including token\'s symbol, token\'s initial supply and token\'s inflation rate. Please organize your reply in JSON format like " "basic_info" : {"symbol": "A", "initial_supply": 1000, "inflation": {"base_rate": 0.05, "min_rate": 0.02, "max_rate": 0.1}} ". (2) Please help me designing Target Allocation, which shows what percentage of total tokens that each distribution target can get. Please organize your data in JSON format like " "allocation": {"airdrop": "10%", ...} ". (3) Please help me designing a vesting schedule within [1825 days]. For each distribution target, it shows release cliff (in days), release frequency (in days), and percentage of tokens that will be released each time. Remember, for each target, the sum of all percentages should equal to 100%. Please organize your data in JSON format like " "vesting": [{"target": "liquidity_mining", “cliff”: “30”, “frequency”: “180”, “percentage”:[“10%”, ...]},…] ".'; 
+              this.questions.push(question1);
+              let question2 = 'The goal of second token is ['+ threeSgoalTag +']. Its capability includes ['+ threeScapabilitiesTag + ']. Its Token Distribution Targets have ['+ threeSdistributionsTargetsTag + ']. The Token Velocity should be [' + threeSvelocityTag + ']. Please answer the following questions in JSON format only, no preambles, explanations or caveats are required: (1) Please design Token\'s Basic Information, including token\'s symbol, token\'s initial supply and token\'s inflation rate. Please organize your reply in JSON format like " "basic_info" : {"symbol": "A", "initial_supply": 1000, "inflation": {"base_rate": 0.05, "min_rate": 0.02, "max_rate": 0.1}} ". (2) Please help me designing Target Allocation, which shows what percentage of total tokens that each distribution target can get. Please organize your data in JSON format like " "allocation": {"airdrop": "10%", ...} ". (3) Please help me designing a vesting schedule within [1825 days]. For each distribution target, it shows release cliff (in days), release frequency (in days), and percentage of tokens that will be released each time. Remember, for each target, the sum of all percentages should equal to 100%. Please organize your data in JSON format like " "vesting": [{"target": "liquidity_mining", “cliff”: “30”, “frequency”: “180”, “percentage”:[“10%”, ...]},…] ".'; 
+              this.questions.push(question2);
+              let question3 = 'The goal of third token is ['+ threeTgoalTag +']. Its capability includes ['+ threeTcapabilitiesTag + ']. Its Token Distribution Targets have ['+ threeTdistributionsTargetsTag + ']. The Token Velocity should be [' + threeTvelocityTag + ']. Please answer the following questions in JSON format only, no preambles, explanations or caveats are required: (1) Please design Token\'s Basic Information, including token\'s symbol, token\'s initial supply and token\'s inflation rate. Please organize your reply in JSON format like " "basic_info" : {"symbol": "A", "initial_supply": 1000, "inflation": {"base_rate": 0.05, "min_rate": 0.02, "max_rate": 0.1}} ". (2) Please help me designing Target Allocation, which shows what percentage of total tokens that each distribution target can get. Please organize your data in JSON format like " "allocation": {"airdrop": "10%", ...} ". (3) Please help me designing a vesting schedule within [1825 days]. For each distribution target, it shows release cliff (in days), release frequency (in days), and percentage of tokens that will be released each time. Remember, for each target, the sum of all percentages should equal to 100%. Please organize your data in JSON format like " "vesting": [{"target": "liquidity_mining", “cliff”: “30”, “frequency”: “180”, “percentage”:[“10%”, ...]},…] ".'; 
+              this.questions.push(question3);
+            }
+            break;
+          default:
+            break;
+        }
+        // TODO 如有漏选提示用户哪里漏选了
+
+        this.design();
       }
-      // TODO 如有漏选提示用户哪里漏选了
-
-      this.design();
+      else {
+        alert("Please log in with your wallet and email!");
+      }
+      
     },
     async design() {
       // console.log(participantsTag.substring(0,participantsTag.lastIndexOf(',')));
@@ -1430,6 +1438,10 @@ export default {
       this.dtInputVisible = false;
       this.dtInputValue = '';
     },
+  },
+
+  computed: {
+    ...mapState(["user", "userEmail"]),
   },
 
   mounted(){

@@ -321,8 +321,6 @@ export default {
          开始测算
         */
         async startSimulation() {
-            // 测算开始，开启 loading 图标
-            this.start = false;
             // 正常测算结束后，restart前重置model实例
             if(this.model != null){
                 // 将当前模型置为 null
@@ -338,6 +336,9 @@ export default {
                 this.$indexedDB.clearDB('modelData');
             }
 
+            // 测算开始，开启 loading 图标
+            this.start = false;
+            
             // 取当前所有 Property
             let currentRuleList = []
             if (this.ruleLists.length) {
@@ -389,9 +390,6 @@ export default {
             // 测算终止（正常终止 / 暂停终止）时更新测算历史数据
             this.SET_HISTORY_SIMULATE_DATA(this.nocne, this.model.data);
 
-            //  测算终止（正常终止 / 暂停终止），关闭 loading 图标
-            this.start = true;
-
             if (this.model.status != 2) {
                 // 当模型处于非 Pause 状态时
                 console.log("the simulation is ended");
@@ -402,6 +400,9 @@ export default {
                 // 存历史模型到总的表
                 await this.updateHistoryModelData();
             }
+
+            //  测算终止（正常终止 / 暂停终止），关闭 loading 图标
+            this.start = true;
         },
         /** 
         暂停测算
