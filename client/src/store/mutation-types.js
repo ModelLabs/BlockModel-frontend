@@ -35,6 +35,7 @@ export const SET_EDIT_CELLS = "SET_EDIT_CELLS"
 //WEB3相关
 export const SET_WEB3_PROVIDER = "SET_WEB3_PROVIDER"
 export const SET_USER = "SET_USER"
+export const SET_USER_EMAIL = "SET_USER_EMAIL"
 
 
 export const SET_EDIT_RULE = "SET_EDIT_RULE"

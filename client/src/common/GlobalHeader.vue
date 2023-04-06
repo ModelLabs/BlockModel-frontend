@@ -24,12 +24,12 @@
             </el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item split-button="true">
-                  <span v-if="user == null" @click="connectWeb3()">Connect Wallet</span>
-                  <span v-else>{{user.substring(0, 5) + '...' + user.substring(user.length - 4)}}</span>
+                  <span v-if="this.user==null" @click="connectWeb3()">Connect Wallet</span>
+                  <span v-else>{{this.user.substring(0, 5) + '...' + this.user.substring(this.user.length - 4)}}</span>
               </el-dropdown-item>
               <el-dropdown-item split-button="true">
-                  <span v-if="userEmail == null" @click="connectEmail()">Connect Email</span>
-                  <span v-else>{{userEmail.substring(0, 5) + '...' + userEmail.substring(userEmail.length - 4)}}</span>
+                  <span v-if="this.userEmail==null" @click="connectEmail()">Connect Email</span>
+                  <span v-else>{{this.userEmail.substring(0, 5) + '...' + this.userEmail.substring(this.userEmail.length - 4)}}</span>
               </el-dropdown-item>
               <el-dropdown-item icon="el-icon-user">
                 <router-link class="profile" to="/profile">
@@ -49,26 +49,28 @@
               <el-input v-model="form.email" placeholder="Use to receive verify conde"></el-input>
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" @click="sendCode(form.email)">Send</el-button>
+              <el-button type="primary" @click="sendCode(form.email)" v-loading="sendLoading">Send</el-button>
             </el-form-item>
           </el-form>
 
           <!-- TODO：报错 span -->
-          <p v-if="!ifSendError">Email verification failed, please change email or try again later.</p>
+          <p v-if="ifSendError">Email verification failed, please change email or try again later.</p>
 
           <el-form :inline="true" :model="form" class="demo-form-inline">
             <el-form-item label="Code">
               <el-input v-model="form.code" placeholder="Enter code to verify"></el-input>
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" @click="verifyCode">Verify</el-button>
+              <el-button type="primary" @click="verifyCode(form.email,form.code)" v-loading="verifyLoading">Verify</el-button>
             </el-form-item>
           </el-form>
 
           <!-- TODO：验证码错误 span -->
-          <p v-if="!ifCodeError">Verification code timed out or error, please try again</p>
+          <p v-if="ifCodeError">Verification code timed out or error, please try again</p>
         </el-dialog>
+
         <!-- <div class="avatar"> -->
+        <!-- <div class="avatar" v-show="false"> -->
           <!-- <span class="user-short-id">{{ shorUserId }}</span> -->
           <!--<router-link to="/profile">Profile</router-link>
            <el-avatar icon="el-icon-user-solid" class="avatar-icon"></el-avatar> -->
@@ -114,7 +116,7 @@
 </template>
 <script>
 import { mapState, mapMutations, mapActions } from "vuex";
-import { getStore, setStore } from "../utils/storage";
+import { getStore, setStore, removeStore } from "../utils/storage";
 // import { setupIPFS } from "../utils/ipfsUtil";
 import {
   connectMetamask,
@@ -136,22 +138,24 @@ export default {
       ifSendError:false,
       ifCodeError:false,
 
+      sendLoading: false,
+      verifyLoading: false,
       searchContent: "",
     };
   },
   computed: {
     ...mapState(["web3Provider", "user", "userEmail"]),
-    shorUserId() {
-      return (
-        this.user.substring(0, 5) +
-        "..." +
-        this.user.substring(this.user.length - 4)
-      );
-    },
+    // shorUserId() {
+    //   return (
+    //     this.user.substring(0, 5) +
+    //     "..." +
+    //     this.user.substring(this.user.length - 4)
+    //   );
+    // },
   },
   methods: {
     ...mapActions(["set_web3_provider"]),
-    ...mapMutations(["SET_USER"]),
+    ...mapMutations(["SET_USER", "SET_USER_EMAIL"]),
     initProvider() {
       let provider = getWeb3Provider();
       if (provider == null) {
@@ -165,20 +169,24 @@ export default {
       this.set_web3_provider(provider);
     },
     initUser() {
-      let user = getStore("user");
-      console.log("user:", user);
+      let tmpUser = getStore("user");
+      let tmpUserEmail = getStore("user_email");
       // user = getStore("userEmail");
-      if (user && user.length != 0) {
-        console.log("1111");
+      if (tmpUser == null || tmpUser.length == 0) {
         this.connectWeb3();
+      } else {
+        this.SET_USER(tmpUser);
       }
+      if (tmpUserEmail != null && tmpUserEmail.length > 0) {
+        this.SET_USER_EMAIL(tmpUserEmail);
+      }
+      console.log("loggin user:", this.user, ", email:", this.userEmail);
     },
     connectWeb3() {
       if (window.ethereum) {
-        console.log("222");
         window.ethereum.enable().then((res) => {
-          this.user = res[0]
-          console.log("res:",res[0]);
+          this.SET_USER(res[0]);
+          // console.log("res:",res[0]);
         })
       }else{
         alert("Please install MetaMask～！")
@@ -199,9 +207,8 @@ export default {
               position: "bottom-right",
             });
           }
-          console.log("3333");
-          this.SET_USER(response.account[0]);
-          console.log("response.account:", response.account[0]);
+          // this.SET_USER(response.account[0]);
+          // console.log("response.account:", response.account[0]);
 
           //生成账户头像
           // this.$nextTick(function () {
@@ -226,8 +233,7 @@ export default {
     },
 
     connectEmail() {
-      emailDialogVisible = true
-      this.userEmail = form.email;
+      this.emailDialogVisible = true;
     },
     // connect() {
     //   if (window.ethereum) {
@@ -239,22 +245,73 @@ export default {
     //   }
     // },
     logout() {
-      console.log("in");
       this.SET_USER(null);
-      setStore("user", null);
+      this.SET_USER_EMAIL(null);
+      removeStore("user");
+      removeStore("user_email");
     },
-    sendCode(email){
-      this.axios.get(`/api/send/${email}`).then(
-        result => {
-          console.log("succeed",result.data)
-          // do something
-        },
-        error => {
-          console.error("error",error)
+    async sendCode(email){
+      this.sendLoading = true;
+      let response = await this.axios.get(`/api/send/${email}`);
+      console.log("response:", response);
+      if (response.status == 200) {
+        this.ifSendError = false;
+      }
+      else {
+        console.log("send code error:",response.statusText, "\nPlease try again!");
+        this.ifSendError = true;
+      }
+      // this.axios.get(`/api/send/${email}`).then(
+      //   result => {
+      //     console.log("succeed",result.data)
+      //   },
+      //   error => {
+      //     alert("send code error:",error, "\nPlease try again!");
+      //     _this.ifSendError = true;
+      //   }
+      // )
+      this.sendLoading = false;
+    },
+
+    async verifyCode(email,code){
+      this.verifyLoading = true;
+
+      let response = await this.axios.post('/api/authcode',{user:email, code:code});
+      if (response.status == 200) {
+        if(response.data.result=="true") {
+          this.SET_USER_EMAIL(email);
+          this.ifCodeError = false;
+          
         }
-      )
-    },
-    verifyCode(){}
+        else{
+          console.log("verify email error: Wrong Code", "\nPlease try again");
+          this.ifCodeError = true;
+        } 
+      }
+      else {
+        console.log("verify email error: ",error, "\nPlease try again");
+        this.ifCodeError = true;
+      }
+      // this.axios.post('/api/authcode',{user:email, code:code}).then(
+      //   result => {
+      //     console.log("succeed",result.data)
+      //     if(result.data.result=="true") {
+      //       // this.userEmail = email;
+      //       console.log("in true_-------");
+      //       _this.SET_USER_EMAIL(email);
+      //       _this.ifCodeError = false;
+            
+      //     }
+      //     else _this.ifCodeError = true;
+      //   },
+      //   error => {
+      //     alert("verify email error: ",error, "\nPlease try again");
+      //     _this.ifCodeError = true;
+      //   }
+      // )
+      this.verifyLoading = false;
+      this.emailDialogVisible = false;
+    }
   },
   mounted() {
     // 连接 IPFS 服务
@@ -368,6 +425,22 @@ export default {
     }
     .left {
       float: left;
+    }
+    .login {
+      float: right;
+      margin: 20px 10px 0px 10px;
+      cursor: pointer;
+    }
+    .el-button {
+      color: white;
+      border: 0;
+      background: -webkit-linear-gradient(left, #78c9f5, #ca82f4);
+    }
+    .el-input{
+      width: 200px;
+    }
+    /deep/ .el-dialog__body {
+      color: #ff4141;
     }
     .connect-web3-button {
       float: right;

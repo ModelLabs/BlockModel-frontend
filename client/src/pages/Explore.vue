@@ -4,14 +4,25 @@
       <div class="title"><span>Explore Models</span></div>
       <!-- <el-divider class="title-divider"></el-divider> -->
 
-      <div class="items">
+        <el-row>
+          <el-col :span="4" v-for="(o, index) in 5" :key="o" :offset="index > 0 ? 1 : 0">
+            <el-card :body-style="{ padding: '0px'}">
+              <img src="https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png" class="image">
+              <div style="padding: 14px;">
+                <span>{{project[index]}}</span>
+                <el-button type="text" class="button" @click="forkProject(project[index])">Fork Model</el-button>
+              </div>
+            </el-card>
+          </el-col>
+        </el-row>
+      <!-- <div class="items">
         <div class="item" v-for="item in dataList" :key="item.id">
           <div @click="gotoDetailPage(item)">
-            <ExploreTemplate :modelData="item" />
+            <ExploreTemplate :modelData="item" /> -->
             <!-- <router-link to="/details"
                   ><ExploreTemplate :modelData="item"
                 /></router-link> -->
-          </div>
+          <!-- </div> -->
 
           <!-- <router-link to="/details">
                 <div class="image-box"></div>
@@ -19,7 +30,7 @@
               <router-link to="/details"
                 ><ExploreTemplate :modelData="item"
               /></router-link> -->
-        </div>
+        <!-- </div>
 
         <div class="block">
           <PaginationTemplate
@@ -27,7 +38,7 @@
             :totalPage="totalPage"
           />
         </div>
-      </div>
+      </div> -->
 
     </div>
 
@@ -44,10 +55,34 @@ export default {
       pageSize: 12,
       currentPage: 4,
       totalPage: 0,
+      project:["StepN","Luna","Uniswap","Axie","Compound"],
     };
   },
   methods: {
     ...mapMutations(["SET_DETAIL_MODEL_DATA"]),
+    forkProject(val){
+      // 我们目前只有 StepN 这个案例跳转到 create 页面
+      if(val === "StepN"){
+        this.$router.push({
+          path: "/create",
+          query: {
+            model: val,
+          },
+        });
+      }
+      else {
+        this.$alert('The case is under maintenance, please try again later.', 'Opps !', {
+          confirmButtonText: 'Confirm',
+          callback: action => {
+            this.$message({
+              type: 'info',
+              message: `action: ${ action }`
+            });
+          }
+        });
+      }
+      
+    },
     queryList(accountAddr, begin, end) {
       const req = {
         address: accountAddr,
@@ -85,14 +120,16 @@ export default {
   computed: {
     ...mapState(["statusCode"]),
   },
-  components: {
-    ExploreTemplate,
-    PaginationTemplate,
-  },
+  // components: {
+  //   ExploreTemplate,
+  //   PaginationTemplate,
+  // },
 };
 </script>
 <style lang="scss" scoped>
 .content {
+  width:1200px;
+  margin:auto;
   .title {
     text-align: center;
     padding: 60px;
@@ -180,6 +217,37 @@ export default {
       display: table-cell;
       text-align: center;
     }
+  }
+
+  // explore items
+  .time {
+    font-size: 13px;
+    color: #999;
+  }
+  
+  .bottom {
+    margin-top: 13px;
+    line-height: 12px;
+  }
+
+  .button {
+    padding: 0;
+    float: right;
+  }
+
+  .image {
+    width: 100%;
+    display: block;
+  }
+
+  .clearfix:before,
+  .clearfix:after {
+      display: table;
+      content: "";
+  }
+  
+  .clearfix:after {
+      clear: both
   }
 }
 </style>

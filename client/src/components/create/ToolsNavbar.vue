@@ -2,27 +2,54 @@
     <div class="bottom-container">
         <div class="btn">
             <div class="left-btn">
-            <el-button class="btn-general small-btn small-btn-left" @click="ZOOM_GRAPH('down')" icon="el-icon-zoom-out"></el-button>
-            <el-button class="btn-general small-btn small-btn-left" @click="ZOOM_GRAPH('up')" icon="el-icon-zoom-in"></el-button>
-            <el-button class="btn-general small-btn small-btn-left" @click="POSITIONING_GRAPH()" icon="el-icon-full-screen"></el-button>
-            <el-button class="btn-general small-btn small-btn-left" @click="UNDO_GRAPH()" icon="el-icon-back"></el-button>
-            <el-button class="btn-general small-btn small-btn-left" @click="REDO_GRAPH()" icon="el-icon-right"></el-button>
+                <el-tooltip class="item" effect="light" content="Zoom In" placement="top">
+                    <el-button class="btn-general small-btn small-btn-left" @click="ZOOM_GRAPH('down')" icon="el-icon-zoom-out"></el-button>
+                </el-tooltip>
+                <el-tooltip class="item" effect="light" content="Zoom Out" placement="top">
+                    <el-button class="btn-general small-btn small-btn-left" @click="ZOOM_GRAPH('up')" icon="el-icon-zoom-in"></el-button>
+                </el-tooltip>
+                <el-tooltip class="item" effect="light" content="Undo" placement="top">
+                    <el-button class="btn-general small-btn small-btn-left" @click="UNDO_GRAPH()" icon="el-icon-back"></el-button>
+                </el-tooltip>
+                <el-tooltip class="item" effect="light" content="Redo" placement="top">
+                    <el-button class="btn-general small-btn small-btn-left" @click="REDO_GRAPH()" icon="el-icon-right"></el-button>
+                </el-tooltip>
             </div>
+
             <div class="middle-btn">
-            <el-button class="view-btn btn-general medium-btn" @click="openDataVisualization()" icon="el-icon-view"></el-button>
-            <el-button  class="start-btn btn-general">
-                <i v-if="start" @click="startSimulation()" class="el-icon-video-play"></i>
-                <i v-else class="el-icon-loading"></i>
-            </el-button>
-            <el-button class="start-btn btn-general" @click="pauseSimulation()" icon="el-icon-video-pause"></el-button>
-            <el-button class="restart-btn btn-general medium-btn" @click="endSimulation()" icon="el-icon-refresh"></el-button>
+                <el-tooltip class="item" effect="light" content="Visualization" placement="top">
+                    <el-button class="view-btn btn-general medium-btn" @click="openDataVisualization()" icon="el-icon-view"></el-button>
+                </el-tooltip>
+                <el-tooltip class="item" effect="light" content="Start Simulation" placement="top">
+                    <el-button  class="start-btn btn-general">
+                        <i v-if="start" @click="startSimulation()" class="el-icon-video-play"></i>
+                        <i v-else class="el-icon-loading"></i>
+                    </el-button>
+                </el-tooltip>
+                <el-tooltip class="item" effect="light" content="Pause Simulation" placement="top">
+                    <el-button class="start-btn btn-general" @click="pauseSimulation()" icon="el-icon-video-pause"></el-button>
+                </el-tooltip>
+                <el-tooltip class="item" effect="light" content="End Simulation" placement="top">
+                    <el-button class="restart-btn btn-general medium-btn" @click="endSimulation()" icon="el-icon-refresh"></el-button>
+                </el-tooltip>
             </div>
+
             <div class="right-btn">
-            <el-button class="btn-general small-btn small-btn-right" icon="el-icon-time"></el-button>
-            <el-button class="btn-general small-btn small-btn-right" @click="REMOVE_CELLS()" icon="el-icon-delete"></el-button>
-            <el-button class="btn-general small-btn small-btn-right" @click="saveGraphToPNG()" icon="el-icon-camera"></el-button>
-            <el-button class="btn-general small-btn small-btn-right" @click="openMintWindow()" icon="el-icon-box"></el-button>
-            <el-button class="btn-general small-btn small-btn-right" icon="el-icon-more"></el-button>
+                <el-tooltip class="item" effect="light" content="Center Positioning" placement="top">
+                    <el-button class="btn-general small-btn small-btn-left" @click="POSITIONING_GRAPH()" icon="el-icon-full-screen"></el-button>
+                </el-tooltip>
+                <el-tooltip class="item" effect="light" content="Delete" placement="top">
+                    <el-button class="btn-general small-btn small-btn-right" @click="REMOVE_CELLS()" icon="el-icon-delete"></el-button>
+                </el-tooltip>
+                <el-tooltip class="item" effect="light" content="Save Graph To PNG" placement="top">
+                    <el-button class="btn-general small-btn small-btn-right" @click="saveGraphToPNG()" icon="el-icon-camera"></el-button>
+                </el-tooltip>
+                <el-tooltip class="item" effect="light" content="Other Useful Functions are Coming Soon" placement="top">
+                    <el-button class="btn-general small-btn small-btn-right" icon="el-icon-more"></el-button>
+                </el-tooltip>
+
+            <!-- <el-button class="btn-general small-btn small-btn-right" icon="el-icon-time"></el-button> -->
+            <!-- <el-button class="btn-general small-btn small-btn-right" @click="openMintWindow()" icon="el-icon-box"></el-button> -->
             </div>
       </div>
 
@@ -69,6 +96,29 @@ export default {
             "ADD_SELECT_PROPERTY_DATA",
         ]),
         /**
+    下载当前模型为json文件
+     */
+    downloadGraph() {
+      //获取时间戳
+      var timestamp = new Date().valueOf();
+      //将全局配置信息和画布数据封装成对象
+      let modelData = {
+        model: { configData: this.configData, graph: this.graph },
+      };
+      const filename = "Model" + timestamp + ".json";
+      const data = JSON.stringify(modelData, undefined, 4);
+      let blob = new Blob([data], { type: "text/json" }),
+        a = document.createElement("a");
+      a.download = filename;
+      a.href = window.URL.createObjectURL(blob);
+      // 标签 data- 嵌入自定义属性  屏蔽后也可正常下载
+      a.dataset.downloadurl = ["text/json", a.download, a.href].join(":");
+      // 添加鼠标事件
+      let event = new MouseEvent("click", {});
+      // 向一个指定的事件目标派发一个事件
+      a.dispatchEvent(event);
+    },
+    /**
          从 indexdb 中取数据
         */
         async getDataFromIndexDB(DBname,key,index){
