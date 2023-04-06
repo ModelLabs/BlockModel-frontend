@@ -57,16 +57,16 @@
                 :data="this.indexList"
                 height="200px"
                 tooltip-effect="dark"
-                style="width: 100%"
+                style="width: 200%"
                 class="history-table"
                 @selection-change="handleSelectionChange"
               >
                 <el-table-column type="selection" width="45"> </el-table-column>            
                 <el-table-column prop="index" label="ID" width="80"></el-table-column>
-                <el-table-column label="Operation" width="110">
+                <el-table-column label="" width="110">
                   <template slot-scope="scope">
                     <!-- 查看数据相关的规则列表 -->
-                    <el-tooltip
+                    <!-- <el-tooltip
                       class="tooltip"
                       content="Show Properties"
                       placement="bottom"
@@ -82,10 +82,10 @@
                           style="font-size: 18px; color: gray"
                         ></i>
                       </el-button>
-                    </el-tooltip>
+                    </el-tooltip> -->
 
                     <!-- 回退到指定历史版本的模型 -->
-                    <el-tooltip
+                    <!-- <el-tooltip
                       class="tooltip"
                       content="Open This Model"
                       placement="bottom"
@@ -101,10 +101,10 @@
                           style="font-size: 18px; color: gray"
                         ></i>
                       </el-button>
-                    </el-tooltip>
+                    </el-tooltip> -->
 
                     <!-- 删除数据 -->
-                    <el-tooltip
+                    <!-- <el-tooltip
                       class="tooltip"
                       content="Delete Data"
                       placement="bottom"
@@ -120,7 +120,7 @@
                           style="font-size: 18px; color: gray"
                         ></i>
                       </el-button>
-                    </el-tooltip>
+                    </el-tooltip> -->
                   </template>
                 </el-table-column>
               </el-table>
