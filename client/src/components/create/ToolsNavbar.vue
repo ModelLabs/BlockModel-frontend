@@ -61,6 +61,7 @@
 import { mapState, mapMutations } from "vuex";
 import { setStore } from "../../utils/storage";
 import { Model } from "../../graph/model";
+import { Sleep } from "../../utils/sleep";
 export default {
     data() {
         return {
@@ -98,29 +99,29 @@ export default {
             "CHANGE_SIMULATING",
         ]),
         /**
-    下载当前模型为json文件
-     */
-    downloadGraph() {
-      //获取时间戳
-      var timestamp = new Date().valueOf();
-      //将全局配置信息和画布数据封装成对象
-      let modelData = {
-        model: { configData: this.configData, graph: this.graph },
-      };
-      const filename = "Model" + timestamp + ".json";
-      const data = JSON.stringify(modelData, undefined, 4);
-      let blob = new Blob([data], { type: "text/json" }),
-        a = document.createElement("a");
-      a.download = filename;
-      a.href = window.URL.createObjectURL(blob);
-      // 标签 data- 嵌入自定义属性  屏蔽后也可正常下载
-      a.dataset.downloadurl = ["text/json", a.download, a.href].join(":");
-      // 添加鼠标事件
-      let event = new MouseEvent("click", {});
-      // 向一个指定的事件目标派发一个事件
-      a.dispatchEvent(event);
-    },
-    /**
+        下载当前模型为json文件
+        */
+        downloadGraph() {
+        //获取时间戳
+        var timestamp = new Date().valueOf();
+        //将全局配置信息和画布数据封装成对象
+        let modelData = {
+            model: { configData: this.configData, graph: this.graph },
+        };
+        const filename = "Model" + timestamp + ".json";
+        const data = JSON.stringify(modelData, undefined, 4);
+        let blob = new Blob([data], { type: "text/json" }),
+            a = document.createElement("a");
+        a.download = filename;
+        a.href = window.URL.createObjectURL(blob);
+        // 标签 data- 嵌入自定义属性  屏蔽后也可正常下载
+        a.dataset.downloadurl = ["text/json", a.download, a.href].join(":");
+        // 添加鼠标事件
+        let event = new MouseEvent("click", {});
+        // 向一个指定的事件目标派发一个事件
+        a.dispatchEvent(event);
+        },
+        /**
          从 indexdb 中取数据
         */
         async getDataFromIndexDB(DBname,key,index){
@@ -236,7 +237,7 @@ export default {
                 // 再判断有没有这一天
                 if(tmpEdgeData.has(tmpEdge.srcElement.result[i].day)){
                     let tmpMap = tmpEdgeData.get(tmpEdge.srcElement.result[i].day);
-                    console.log("tmpMap",tmpMap);
+                    // console.log("tmpMap",tmpMap);
                     // 如果这天这个token存过了，累加
                     if(tmpMap.has(tmpEdge.srcElement.result[i].token))
                     tmpMap.set(tmpEdge.srcElement.result[i].token,tmpMap.get(tmpEdge.srcElement.result[i].token) + tmpEdge.srcElement.result[i].transferAmount);
@@ -324,9 +325,10 @@ export default {
          开始测算
         */
         async startSimulation() {
-            // // 测算开始，开启 loading 图标
-            // this.start = false;
-            // this.CHANGE_SIMULATING(true);
+            // 测算开始，开启 loading 图标
+            this.start = false;
+            this.CHANGE_SIMULATING(true);
+            await Sleep(1);
             // 正常测算结束后，restart前重置model实例
             if(this.model != null){
                 // 将当前模型置为 null
@@ -341,10 +343,6 @@ export default {
                 this.$indexedDB.clearDB('edgeHistoryData');
                 this.$indexedDB.clearDB('modelData');
             }
-
-            // 测算开始，开启 loading 图标
-            this.start = false;
-            this.CHANGE_SIMULATING(true);
             
             // 取当前所有 Property
             let currentRuleList = []
