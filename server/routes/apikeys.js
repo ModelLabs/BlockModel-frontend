@@ -66,13 +66,13 @@ router.delete('/apikey/:id', (req, res) => {
 // Update apikey
 router.put('/apikey', (req, res) => {
   console.log(req.body)
-  if (typeof(req.body.id) == 'undefined' || typeof(req.body.status) == 'undefined') {
+  if (typeof(req.body.apikey) == 'undefined' || typeof(req.body.status) == 'undefined') {
     res.status(400)
     res.json({
       error: 'Bad data'
     })
   } else {
-    Apikey.update({ _status: req.body.status }, { where: { _id: req.body.id } })
+    Apikey.update({ _status: req.body.status }, { where: { _apikey: req.body.apikey } })
       .then((reslut) => {
         console.log(reslut)
         if (reslut[0]==1) {

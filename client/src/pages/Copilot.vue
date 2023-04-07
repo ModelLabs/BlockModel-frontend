@@ -395,6 +395,7 @@ import { mapState, mapMutations, mapActions } from "vuex";
 import UserPart from '../components/AI/UserPart.vue'
 import AIPart from '../components/AI/AIPart.vue'
 import { percentageToNumber, checkSumObj, checkSumArray, getRandomInt} from "../utils/numberUtil";
+import { values } from "@antv/util";
 var d3 = require("d3-interpolate");
 //import { log } from '@antv/g2plot/lib/utils';
 // import { Configuration, OpenAIApi } from "openai";
@@ -979,18 +980,42 @@ export default {
       
     },
     async design() {
+      await this.scheduleTask();
+      // before calling to openai api, we should create a session between client and server
+      // 1. retrive session from database with user_email
+      let resultFromServer = await this.axios.get(`/api/session/${this.userEmail}`);
+      let session = resultFromServer.data;
+      console.log(session);
+      if (session.length == 0) {
+        console.log("no session, we will create a session between client and server!");
+        resultFromServer = await this.axios.get('/api/apikey');
+        let aipkey = resultFromServer.data;
+        if (aipkey.length == 0) {
+          alert("no apikey available!");
+          this.showLoading = false;
+          return
+        } else {
+          session = [{"_user":this.userEmail,"_apikey":aipkey[0]._apikey,"_createtime":Date.now(),"_calltimes":5}];
+          console.log(session[0]);
+          let result = await this.axios
+        .post('/api/session', { _user: session[0]._user, _apikey: session[0]._apikey, _createtime: session[0]._createtime, _calltimes: session[0]._calltimes });
+          console.log("create session result:"+result);
+          result = await this.axios
+        .put('/api/apikey', { apikey: session[0]._apikey, status: 1 });
+          console.log("update apikey status result:"+result);
+        }
+      }
       // console.log(participantsTag.substring(0,participantsTag.lastIndexOf(',')));
       let systemMessage = 'I want you to act as a Web3 token economy engineer. I will provide some specific information about token requirement, and it will be your job to come up with detailed design for my product . Different requirements lead to different designs. I will tell you what track my product belongs to, and how many types of tokens I need, and some other requirements. Then you should give me the best appropriate design, based on your abundant knowledge of Tokenomics . In the design process, you need to use mathematics and statistics knowledge to avoid numerical calculation errors. Now I need you to help designing my ' + this.selectedTypeTag + ' project\'s ' + this.selectedTokenKindTag + '-token economy model. I will tell you my requirement for each type of token. Your design should satisfy my requirements and requests for each type of token. If you understand, just only reply \'understand\'';
-  
-      this.selectedAPIKey = String(apikeys[getRandomInt(0,apikeys.length)]);
 
+      this.selectedAPIKey = String(session[0]._apikey);
       for (let ques = 0; ques < this.questions.length; ques++) {
         let messages = [];
         if (ques == 0) messages.push(
-          {"role": "system", "content": systemMessage}
+          { "role": "system", "content": systemMessage }
         );
         messages.push(
-          {"role": "user", "content": this.questions[ques]}
+          { "role": "user", "content": this.questions[ques] }
         );
 
         const requestOptions = {
@@ -1005,13 +1030,12 @@ export default {
             'temperature': 0.2,
           })
         };
-        
-        if (callTime > 0) {
+        if (session[0]._calltimes > 0) {
           try {
-            const response = await fetch('https://api.openai.com/v1/chat/completions', requestOptions);
+            const response = fetch('https://api.openai.com/v1/chat/completions', requestOptions);
             if (response.status == 200) {
               const data = await response.json();
-            
+
               this.LineChartData = [];
               this.PieChartData = [];
               //  Do something with data
@@ -1031,7 +1055,7 @@ export default {
               else tokenAllocationInfo = tokenAllocationInfo[0];
               tokenAllocationInfo = JSON.parse("{" + tokenAllocationInfo + "}").allocation;
               if (!checkSumObj(tokenAllocationInfo)) {
-                throw("mathmatics error");
+                throw ("mathmatics error");
               }
 
               // Using Regex to extract token's vesting info
@@ -1042,7 +1066,7 @@ export default {
               tokenVestingInfo = JSON.parse("{" + tokenVestingInfo + "}").vesting;
               for (var i in tokenVestingInfo) {
                 if (!checkSumArray(tokenVestingInfo[i].percentage)) {
-                  throw("mathmatics error");
+                  throw ("mathmatics error");
                 }
               }
 
@@ -1052,8 +1076,9 @@ export default {
               // if (!this.checkSum(jsonParesed.allocation)) {
               //   alert("error occured while check sum, please call again");
               // }
-              callTime = callTime - 1;
-
+              session[0]._calltimes = session[0]._calltimes - 1;
+              let res = await this.axios.put('/api/session', {user: session[0]._user, calltimes: session[0]._calltimes});
+              console.log("update sesiion result: "+res);
               this.msglist.push(
                 {
                   content: 'My design for ' + tokenBasicInfo.symbol + ' is as follows: ',
@@ -1068,18 +1093,17 @@ export default {
               this.showInput = true;
             }
             else {
-              throw("response status error");
+              throw ("response status error");
             }
           } catch (err) {
             alert("api error, please call again: " + err);
           }
-            
+
         } else {
           alert("Visitor can only call five times");
         }
       }
       this.showLoading = false;
-      
     },
     packDataForVisualization(tokenBasicInfo, tokenAllocationInfo, tokenVestingInfo) {
       // initial_suppply 有可能是字符串或者科学记数法，先用 Number()进行规范
@@ -1142,19 +1166,21 @@ export default {
     retrieveAPIkey() {
       this.axios.get('/api/apikey').then(
         result => {
-          console.log(result.data)
+          console.log(result.data);
           // do something
+          return result.data;
         },
         error => {
-          console.error(error)
+          console.error(error);
+          return null;
         }
       )
     },
     // udate apikey status
-    // value example: var values={"id":0, "status": 1}
+    // value example: var values={"apikey":"xxxx", "status": 1/0}
     updateAPIkeyStatus(values) {
       this.axios
-        .put('/api/apikey', { id: values.id, status: values.status })
+        .put('/api/apikey', { apikey: values.apikey, status: values.status })
         .then(res => {
           console.log(res)
         })
@@ -1169,9 +1195,11 @@ export default {
         .post('/api/session', { _user: value.user, _apikey: value.apikey, _createtime: Date.now(), _calltime: 5 })
         .then(res => {
           console.log(res);
+          return res;
         })
         .catch(err => {
           console.log(err)
+          return err
         })
     },
     // query session
@@ -1181,9 +1209,26 @@ export default {
         result => {
           console.log(result.data)
           // do something
+          return result.data
         },
         error => {
           console.error(error)
+          return null
+        }
+      )
+    },
+    // update session
+    // user example: var values = {"user":"xxxxx@163.com","calltimes":4};
+    updateSession(values) {
+      this.axios.put('/api/session', {user: values.user, calltimes: values.calltimes}).then(
+        result => {
+          console.log(result.data)
+          // do something
+          return result.data
+        },
+        error => {
+          console.error(error)
+          return null
         }
       )
     },
@@ -1226,7 +1271,9 @@ export default {
         schedule.scheduleJob('*/15 * * * *', () => {
           console.log('scheduleCronstyle:' + new Date());
           // call endsession interface to end session, arguement 'user' should be passed
-          // this.endSession(user);
+          this.endSession(this.userEmail);
+
+          this.updateAPIkeyStatus({"apikey": this.selectedAPIKey, "status": 0});
         });
       }
       scheduleCronstyle();
@@ -1455,7 +1502,6 @@ export default {
     //     "max_rate": 0.1
     //   }
     // };
-
     // let tmpLineChartData = [
     //   {
     //     "target": "team",
@@ -1503,7 +1549,6 @@ export default {
     //   "liquidity_mining": "30%"
     // };
     // this.packDataForVisualization(tmpBasicInfo,tmpPieChartData, tmpLineChartData);
-
     // this.msglist.push(
     //   {
     //     content: 'My design for ' + tmpBasicInfo.symbol + ' is as follows: ',
@@ -1552,43 +1597,35 @@ export default {
   margin: auto;
   height: 150px;
 }
-
 .select-title {
   text-align: left;
   margin-bottom: 0px;
 }
-
 .select-type {
   width: 500px;
   height: 80px;
   overflow: scroll;
   float: left;
   text-align: left;
-
   .type {
     background-color: #ECF5FF;
     color: #409EFF;
   }
-
   .typeSelect {
     background-color: #70b4f8;
     color: white;
   }
-
   .tag-title {
     margin: 10px 0px;
     color: #409EFF;
   }
-
   .el-tag+.el-tag {
     margin: 10px 10px;
   }
-
   /deep/ .el-tag {
     border: 0px;
     margin: 10px 10px;
   }
-
   .button-new-tag {
     margin-left: 10px;
     height: 32px;
@@ -1596,13 +1633,11 @@ export default {
     padding-top: 0;
     padding-bottom: 0;
   }
-
   .input-new-tag {
     width: 90px;
     margin-left: 10px;
     // vertical-align: bottom;
   }
-
   /deep/ .el-button {
     border: 0px;
     background: #ECF5FF;
@@ -1615,31 +1650,25 @@ export default {
   overflow: scroll;
   float: left;
   text-align: left;
-
   .tokenKind {
     background-color: #D7F3CE;
     color: #67C23A;
   }
-
   .tokenKindSelect {
     background-color: #67C23A;
     color: #fff;
   }
-
   .tag-title {
     margin: 10px 0px;
     color: #67C23A;
   }
-
   .el-tag+.el-tag {
     margin: 10px 10px;
   }
-
   /deep/ .el-tag {
     border: 0px;
     margin: 10px 10px;
   }
-
   .button-new-tag {
     margin-left: 10px;
     height: 32px;
@@ -1647,51 +1676,42 @@ export default {
     padding-top: 0;
     padding-bottom: 0;
   }
-
   .input-new-tag {
     width: 90px;
     margin-left: 10px;
     // vertical-align: bottom;
   }
-
   /deep/ .el-button {
     border: 0px;
     background: #D7F3CE;
     color: #67C23A;
   }
 }
-
 .select-mode {
   width: 500px;
   height: 100px;
   overflow: scroll;
   float: left;
   text-align: left;
-
   .mode {
     background-color: #FCF6EC;
     color: #FCB846;
   }
-
   .modeSelect {
     background-color: #FCB846;
     color: #fff;
   }
-
   .tag-title {
     margin: 10px 0px;
     color: #FCB846;
   }
-
   .el-tag+.el-tag {
     margin: 10px 10px;
   }
-
   /deep/ .el-tag {
     border: 0px;
     margin: 10px 10px;
   }
-
   .button-new-tag {
     margin-left: 10px;
     height: 32px;
@@ -1699,51 +1719,42 @@ export default {
     padding-top: 0;
     padding-bottom: 0;
   }
-
   .input-new-tag {
     width: 90px;
     margin-left: 10px;
     // vertical-align: bottom;
   }
-
   /deep/ .el-button {
     border: 0px;
     background: #FCF6EC;
     color: #FCB846;
   }
 }
-
 .select-participants {
   width: 500px;
   height: 100px;
   overflow: scroll;
   float: left;
   text-align: left;
-
   .participants {
     background-color: #E0D1FB;
     color: #9566E8;
   }
-
   .participantsSelect {
     background-color: #9566E8;
     color: #fff;
   }
-
   .tag-title {
     margin: 10px 0px;
     color: #9566E8;
   }
-
   .el-tag+.el-tag {
     margin: 10px 10px;
   }
-
   /deep/ .el-tag {
     border: 0px;
     margin: 10px 10px;
   }
-
   .button-new-tag {
     margin-left: 10px;
     height: 32px;
@@ -1751,13 +1762,11 @@ export default {
     padding-top: 0;
     padding-bottom: 0;
   }
-
   .input-new-tag {
     width: 90px;
     margin-left: 10px;
     // vertical-align: bottom;
   }
-
   /deep/ .el-button {
     border: 0px;
     background: #E0D1FB;
@@ -1966,28 +1975,23 @@ export default {
   margin: 20px auto;
   width: 1000px;
 }
-
 .btn:hover {
   color: #fff;
 }
-
 .communication {
   height: 450px;
   overflow: scroll;
-
   .ai-answer {
     width: 1000px;
     height: 330px;
     margin: auto;
   }
-
   .user-msg {
     width: 1000px;
     height: 60px;
     margin: 15px auto;
   }
 }
-
 .input {
   margin: 10px auto;
   width: 1000px;

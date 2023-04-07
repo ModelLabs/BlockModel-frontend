@@ -36,17 +36,17 @@ CREATE TABLE IF NOT EXISTS models (
 
 INSERT INTO apikeys VALUES (
     null,
-    "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",
+    "",
     0
 );
 INSERT INTO apikeys VALUES (
     null,
-    "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",
+    "",
     0
 );
 INSERT INTO apikeys VALUES (
     null,
-    "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",
+    "",
     0
 );
 exit
