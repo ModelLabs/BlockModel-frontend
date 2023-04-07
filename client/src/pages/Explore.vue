@@ -55,9 +55,6 @@ export default {
       pageSize: 12,
       currentPage: 4,
       totalPage: 0,
-<<<<<<< Updated upstream
-      project:["stepn","Luna","Uniswap","Axie","Compound"],
-=======
       project:["StepN","SNX","Uniswap","DYDX","AVAX"],
       imgs:[
         require("../assets/stepn.png"),
@@ -65,7 +62,6 @@ export default {
         require("../assets/UNI.png"),
         require("../assets/dydx.png"),
         require("../assets/avax.png")]
->>>>>>> Stashed changes
     };
   },
   methods: {
