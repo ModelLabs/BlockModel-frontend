@@ -1166,6 +1166,9 @@ export default {
       this.graph.on("node:click",({ e, x, y, cell, view }) => {
         console.log("e",this.graph.getSelectedCells());
       })
+      this.graph.on('edge:dblclick', ({ e, x, y, edge, view }) => {
+        console.log("dblclick",edge);
+      })
       // 节点编辑
       this.graph.on("cell:contextmenu", ({ e, x, y, cell, view }) => {
         // TODO (Xufei) 需要重新设计 Token 不能被编辑的逻辑 Token.type == 2 的不能被编辑？
@@ -1215,6 +1218,7 @@ export default {
       });
       this.graph.on("cell:dblclick", ({ cell, e }) => {
           // const name = "node-editor";
+          //this.graph.disablePanning() // 禁止画布平移
           const name = cell.isEdge() ? "edge-editor" : "node-editor";
           if (cell.isNode()) {
             cell.removeTool(name);

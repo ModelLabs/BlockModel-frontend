@@ -7,7 +7,7 @@
         <el-row>
           <el-col :span="4" v-for="(o, index) in 5" :key="o" :offset="index > 0 ? 1 : 0">
             <el-card :body-style="{ padding: '0px'}">
-              <img src="../assets/stepn.png" class="image">
+              <img :src="imgs[index]" class="image">
               <div style="padding: 14px;">
                 <span>{{project[index]}}</span>
                 <el-button type="text" class="button" @click="forkProject(project[index])">Fork Model</el-button>
@@ -55,7 +55,17 @@ export default {
       pageSize: 12,
       currentPage: 4,
       totalPage: 0,
+<<<<<<< Updated upstream
       project:["stepn","Luna","Uniswap","Axie","Compound"],
+=======
+      project:["StepN","SNX","Uniswap","DYDX","AVAX"],
+      imgs:[
+        require("../assets/stepn.png"),
+        require("../assets/SNX.png"),//
+        require("../assets/UNI.png"),
+        require("../assets/dydx.png"),
+        require("../assets/avax.png")]
+>>>>>>> Stashed changes
     };
   },
   methods: {
@@ -144,6 +154,9 @@ export default {
   .title-divider {
     //background-color: #c0e1f8;
     background-image: linear-gradient(to right, #4bf8ef, #f879e3);
+  }
+  .image {
+    height: 200px;
   }
   .items {
     padding-left: 8%;

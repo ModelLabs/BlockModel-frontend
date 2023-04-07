@@ -64,7 +64,7 @@
                 <el-table-column type="selection" width="45"> </el-table-column>            
                 <el-table-column prop="index" label="ID" width="80"></el-table-column>
                 <el-table-column label="" width="110">
-                  <template slot-scope="scope">
+                  <!-- <template slot-scope="scope"> -->
                     <!-- 查看数据相关的规则列表 -->
                     <!-- <el-tooltip
                       class="tooltip"
@@ -121,7 +121,7 @@
                         ></i>
                       </el-button>
                     </el-tooltip> -->
-                  </template>
+                  <!-- </template> -->
                 </el-table-column>
               </el-table>
             <!-- </div> -->
