@@ -232,7 +232,7 @@ export default {
                 // 先判断有没有这个 id
                 if(edge.has(tmpEdge.srcElement.result[i].id)){
                 let tmpEdgeData = edge.get(tmpEdge.srcElement.result[i].id);
-                console.log("tmpEdgeData",tmpEdgeData);
+                // console.log("tmpEdgeData",tmpEdgeData);
                 // 再判断有没有这一天
                 if(tmpEdgeData.has(tmpEdge.srcElement.result[i].day)){
                     let tmpMap = tmpEdgeData.get(tmpEdge.srcElement.result[i].day);
@@ -278,6 +278,7 @@ export default {
                 // }
             }
 
+            console.log("data-reorg finish");
             let tmpObj = new Map();
             let obj = new Map();
             let id = 0;
@@ -323,12 +324,9 @@ export default {
          开始测算
         */
         async startSimulation() {
-<<<<<<< Updated upstream
-=======
-            // 测算开始，开启 loading 图标
-            this.start = false;
-            this.CHANGE_SIMULATING(true);
->>>>>>> Stashed changes
+            // // 测算开始，开启 loading 图标
+            // this.start = false;
+            // this.CHANGE_SIMULATING(true);
             // 正常测算结束后，restart前重置model实例
             if(this.model != null){
                 // 将当前模型置为 null
@@ -346,6 +344,7 @@ export default {
 
             // 测算开始，开启 loading 图标
             this.start = false;
+            this.CHANGE_SIMULATING(true);
             
             // 取当前所有 Property
             let currentRuleList = []
@@ -408,11 +407,12 @@ export default {
                 // 存历史模型到总的表
                 await this.updateHistoryModelData();
 
-                this.CHANGE_SIMULATING(false);
+                // this.CHANGE_SIMULATING(false);
             }
 
             //  测算终止（正常终止 / 暂停终止），关闭 loading 图标
             this.start = true;
+            this.CHANGE_SIMULATING(false);
         },
         /** 
         暂停测算

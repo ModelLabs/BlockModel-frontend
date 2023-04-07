@@ -55,14 +55,14 @@ export default {
       pageSize: 12,
       currentPage: 4,
       totalPage: 0,
-      project:["StepN","Luna","Uniswap","Axie","Compound"],
+      project:["stepn","Luna","Uniswap","Axie","Compound"],
     };
   },
   methods: {
     ...mapMutations(["SET_DETAIL_MODEL_DATA"]),
     forkProject(val){
       // 我们目前只有 StepN 这个案例跳转到 create 页面
-      if(val === "StepN"){
+      if(val === "stepn"){
         this.$router.push({
           path: "/create",
           query: {

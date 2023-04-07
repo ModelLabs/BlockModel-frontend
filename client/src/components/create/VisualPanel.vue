@@ -1741,9 +1741,6 @@ export default {
       if(n===true && o===false){
         this.running = false;
       }
-
-        console.log("11111new",o);
-        console.log("11111old",n);
     }
   }
 };

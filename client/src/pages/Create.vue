@@ -53,7 +53,7 @@ export default {
   },
   mounted(){
     if(this.$route.query.model != undefined){
-      this.axios.get(`/api/model/${this.modelName}`).then(
+      this.axios.get(`/api/model/${this.$route.query.model}`).then(
         result => {
           let tmp = result.data[0]._modeldata;
           if (tmp != 0) {

@@ -172,12 +172,12 @@ export default {
       let tmpUser = getStore("user");
       let tmpUserEmail = getStore("user_email");
       // user = getStore("userEmail");
-      if (tmpUser == null || tmpUser.length == 0) {
+      if (tmpUser == null || tmpUser == "null" || tmpUser.length == 0) {
         this.connectWeb3();
       } else {
         this.SET_USER(tmpUser);
       }
-      if (tmpUserEmail != null && tmpUserEmail.length > 0) {
+      if (tmpUserEmail != null && tmpUserEmail != "null" && tmpUserEmail.length > 0) {
         this.SET_USER_EMAIL(tmpUserEmail);
       }
       console.log("loggin user:", this.user, ", email:", this.userEmail);
