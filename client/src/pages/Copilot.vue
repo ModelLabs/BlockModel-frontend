@@ -380,14 +380,6 @@
       </el-input>
     </div>
 
-    
-    <a href="https://docs.google.com/forms/d/e/1FAIpQLSc7-ZVTRYlFFBDPPvUfiB_yOC4MUds8gPetACOZBMrS4_DIKw/viewform" 
-    target="_blank" 
-    style="text-decoration: none">
-      <el-button icon="el-icon-tickets" circle class="float-right"></el-button>
-    </a>
-    
-
   </div>
 </template>
 <script>

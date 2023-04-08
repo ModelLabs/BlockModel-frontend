@@ -42,7 +42,15 @@
             </el-dropdown-menu>
           </el-dropdown>
         </li>
-
+        
+        <li class="jump-survey">
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSc7-ZVTRYlFFBDPPvUfiB_yOC4MUds8gPetACOZBMrS4_DIKw/viewform" 
+            target="_blank" 
+            style="text-decoration: none">
+            <el-button icon="el-icon-tickets" circle type="primary"></el-button>
+          </a>
+        </li> 
+      
         <el-dialog title="Connect Email" :visible.sync="emailDialogVisible" width="30%">
           <el-form :inline="true" :model="form" class="demo-form-inline">
             <el-form-item label="Email">
@@ -450,6 +458,11 @@ export default {
         background: -webkit-linear-gradient(left, #49e4f5, #d849f5);
       }
     }
+    .jump-survey {
+      float: right;
+      margin: 20px 30px 0px 20px;
+      cursor: pointer;
+    }
     .connect-email-button {
       float: right;
       margin: 20px 0px 0px 20px;
@@ -495,6 +508,18 @@ export default {
       .profile {
         color: #000;
       }
+    }
+    .float-right{
+      position: fixed;
+      display: flex;
+      flex-direction: column;
+      right: 30px;
+      bottom: 30px;
+      z-index: 10;
+      padding: 3px 3px 0 3px;
+      border-radius: 3px;
+      border: 1px solid #ddd;
+      background: #fff;
     }
   }
 }
