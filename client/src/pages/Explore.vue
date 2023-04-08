@@ -55,7 +55,7 @@ export default {
       pageSize: 12,
       currentPage: 4,
       totalPage: 0,
-      project:["StepN","SNX","Uniswap","DYDX","AVAX"],
+      project:["stepn","SNX","Uniswap","DYDX","AVAX"],
       imgs:[
         require("../assets/stepn.png"),
         require("../assets/SNX.png"),//
