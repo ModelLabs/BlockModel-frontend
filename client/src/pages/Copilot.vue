@@ -974,7 +974,7 @@ export default {
       
     },
     async design() {
-      await this.scheduleTask();
+      this.scheduleTask();
       // before calling to openai api, we should create a session between client and server
       // 1. retrive session from database with user_email
       let resultFromServer = await this.axios.get(`/api/session/${this.userEmail}`);
@@ -1026,7 +1026,7 @@ export default {
         };
         if (session[0]._calltimes > 0) {
           try {
-            const response = fetch('https://api.openai.com/v1/chat/completions', requestOptions);
+            const response = await fetch('https://api.openai.com/v1/chat/completions', requestOptions);
             if (response.status == 200) {
               const data = await response.json();
 

@@ -178,7 +178,7 @@ export default {
     //设置账户邮箱并存储在localstorage中
     [SET_USER_EMAIL](state, userEmail) {
         state.userEmail = userEmail
-        setStore("user_email ", userEmail);
+        setStore("user_email", userEmail);
     },
 
     [SET_EDIT_RULE](state, item) {
