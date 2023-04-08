@@ -2,7 +2,7 @@
   <el-collapse-transition>
     <div class="visual-panel">
       <div  v-if="simulating" class="generating">
-        <h2>The simulation data of the current model is being generated, please wait.</h2>
+        <h2>The calculation data of the current model is being generated, please restart the window to view later.</h2>
       </div>
       
       <!-- <span class="help"
