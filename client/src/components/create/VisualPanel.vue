@@ -1,7 +1,10 @@
 <template >
   <el-collapse-transition>
     <div class="visual-panel">
-      <p v-if="simulating">The simulation data of the current model is being generated, please wait.</p>
+      <div  v-if="simulating" class="generating">
+        <h2>The simulation data of the current model is being generated, please wait.</h2>
+      </div>
+      
       <!-- <span class="help"
         ><i class="el-icon-question" @click="helpShow = !helpShow"></i>
       </span> -->
@@ -175,7 +178,7 @@ import { mapState, mapMutations } from "vuex";
 export default {
   data() {
     return {
-      running:false,
+      //running:false,
       selectedData:false,
       // Select -  simulationId && Data 选择的折叠面板编号
       activeNames: ['1','2'],
@@ -1733,16 +1736,6 @@ export default {
       "simulating",
     ]),
   },
-  // watch:{
-  //   simulating(o,n){
-  //     if(n===false && o===true){
-  //       this.running = true;
-  //     }
-  //     if(n===true && o===false){
-  //       this.running = false;
-  //     }
-  //   }
-  // }
 };
 </script>
 <style lang="scss">
@@ -1790,8 +1783,15 @@ export default {
     border: 1px solid rgb(228, 228, 228);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
   }
+  .generating {
+    color:white;
+    height:28px;
+    background-color: rgb(150, 184, 96);
+    border-radius: 20px;
+    margin-top: 10px;
+  }
   .empty-chart {
-    height: 600px;
+    height: 520px;
     width: 100%;
   }
   .data-selected-container {
