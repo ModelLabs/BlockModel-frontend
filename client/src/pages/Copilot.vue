@@ -655,8 +655,18 @@ export default {
     AIPart,
     UserPart,
   },
+  watch:{
+    msglist:{
+      handler(){
+        if(msglist[msglist.length-1].user === false){
+          this.showLoading = false;
+        }
+      }
+    }
+  },
   methods: {
     async onSubmit() {
+      this.showLoading = true;
       //event.preventDefault();
       try {
         this.msglist.push(
