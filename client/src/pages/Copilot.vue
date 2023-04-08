@@ -380,14 +380,6 @@
       </el-input>
     </div>
 
-    
-    <a href="https://docs.google.com/forms/d/e/1FAIpQLSc7-ZVTRYlFFBDPPvUfiB_yOC4MUds8gPetACOZBMrS4_DIKw/viewform" 
-    target="_blank" 
-    style="text-decoration: none">
-      <el-button icon="el-icon-tickets" circle class="float-right"></el-button>
-    </a>
-    
-
   </div>
 </template>
 <script>
@@ -400,14 +392,6 @@ var d3 = require("d3-interpolate");
 //import { log } from '@antv/g2plot/lib/utils';
 // import { Configuration, OpenAIApi } from "openai";
 const schedule = require('node-schedule');
-const apikeys = [
-                "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",
-"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",
-"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"
-                //  "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",
-                //  "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",
-                //  "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"
-                 ];
 // we can store callTime into indexeddb
 var callTime = 5;
 export default {

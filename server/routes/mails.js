@@ -4,7 +4,6 @@ const nodemailer = require("nodemailer");
 var express = require('express')
 var router = express.Router()
 const Authcode = require('../model/Authcode')
-
 const leandro = (nome, frontEndDev) => {
 	return {
 		nome,
@@ -17,34 +16,16 @@ const leandro = (nome, frontEndDev) => {
 router.get('/send/:to', (req, res) => {
   console.log(req.params.to);
   let transporter = nodemailer.createTransport({
-    // host: 'smtp.ethereal.email',
-    service: "qq", // 使用了内置传输发送邮件 查看支持列表：https://nodemailer.com/smtp/well-known/
-    //   port: 465, // SMTP 端口
-    secureConnection: true, // 使用了 SSL
+    host: 'smtp.163.com',
+    // service: "qq", // 使用了内置传输发送邮件 查看支持列表：https://nodemailer.com/smtp/well-known/
+    // port: 25, // SMTP 端口
+    secure: true,
+    //secureConnection: true, // 使用了 SSL
     auth: {
-      user: "616731641@qq.com",
-      pass: "pujyjrassyzjbbfc", //授权码，并非QQ密码
+      user: "blockModel@163.com",
+      pass: "", //授权码，并非QQ密码
     },
   });
-  
-  // 如果使用 Gmail 邮箱
-  // let access_token = "ya29.a0Ael9sCO_u-JjQgpVVEOlANmYKH-3ptyWEk-6vrCgrukkZ3DDs8W-1C3WcQC0WLgIN_e5ITFA_WTXhr4x2TkvGBI8o2na1pod9byMSxT_Wws8nAyi3NgGxXsrMd8BQZkfmqDwEbsgZhelSsWoglIpQV4MwDiIaCgYKAfYSARISFQF4udJhWBtpWtsVTthevvQPdPfsyA0163";
-  // const transporter = nodemailer.createTransport({
-  //   host: "smtp.gmail.com",
-  //   port: 465,
-  //   secure: true,
-  //   auth: {
-  //     type: "OAuth2",
-  //     user: "models.research.lab@gmail.com",
-  //     clientId:
-  //       "672020294536-ah1g9re5uo0eajo839359jl4h5vg3idt.apps.googleusercontent.com",
-  //     clientSecret: "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",
-  //     refreshToken:
-  //       "1//04Fvli7l0i5sQCgYIARAAGAQSNwF-L9Ir45s7iidy5FyrrVDwUXURHgf02HjRjARjaeNm0Yz6ejxG4jnra1uEluyS7aBJ012OA6o",
-  //     accessToken:
-  //       access_token,
-  //   },
-  // });
   
   const randomFns=()=> { // 生成6位随机数
     let code = ""
@@ -61,7 +42,7 @@ router.get('/send/:to', (req, res) => {
   
   // 收件人地址 (由前端传过来)
   let mailOptions = {
-    from: '616731641@qq.com', // 发送地址
+    from: 'blockModel@163.com', // 发送地址
     to: req.params.to, // 接收列表（可多个）
     subject: "Hello,You are registering for a BlockModel account!", // 主题
     // 发送text或者html格式（任选一个）

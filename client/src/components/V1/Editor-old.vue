@@ -490,7 +490,7 @@ export default {
         },
         connecting: {
           router: {
-            name: "manhattan",
+            name: "orth",
             args: {
               padding: 1,
             },
