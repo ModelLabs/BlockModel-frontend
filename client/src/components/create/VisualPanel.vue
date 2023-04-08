@@ -1,7 +1,7 @@
 <template >
   <el-collapse-transition>
     <div class="visual-panel">
-      <p v-if="running">The simulation data of the current model is being generated, please wait.</p>
+      <p v-if="simulating">The simulation data of the current model is being generated, please wait.</p>
       <!-- <span class="help"
         ><i class="el-icon-question" @click="helpShow = !helpShow"></i>
       </span> -->
@@ -1733,16 +1733,16 @@ export default {
       "simulating",
     ]),
   },
-  watch:{
-    simulating(o,n){
-      if(n===false && o===true){
-        this.running = true;
-      }
-      if(n===true && o===false){
-        this.running = false;
-      }
-    }
-  }
+  // watch:{
+  //   simulating(o,n){
+  //     if(n===false && o===true){
+  //       this.running = true;
+  //     }
+  //     if(n===true && o===false){
+  //       this.running = false;
+  //     }
+  //   }
+  // }
 };
 </script>
 <style lang="scss">
