@@ -134,18 +134,19 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+  @import url('https://fonts.googleapis.com/css2?family=Libre+Franklin&display=swap');
     .figure-container {
         height: 100%;
         margin: 0;
         h4 {
-          letter-spacing: 0.2ch;
+          // letter-spacing: 0.2ch;
           margin-left: 10px;
         }
         .config-data-input {
           margin-left: 10px;
           width: 200px;
           margin-top: 15px;
-          letter-spacing: 0.1ch;
+          // letter-spacing: 0.1ch;
           font-weight: 500;
         }
 

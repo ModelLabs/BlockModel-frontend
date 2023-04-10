@@ -22,6 +22,7 @@ export default {
 </script>
 
 <style lang="scss">
+@import url('https://fonts.googleapis.com/css2?family=Miriam+Libre&display=swap');
 html,
 body,
 p {
@@ -37,7 +38,7 @@ body {
   background: -webkit-linear-gradient(top, rgba(184, 238, 248, 0.63), rgba(154, 126, 236, 0.42));
 }
 #app {
-  font-family: "Times New Roman", Georgia, Serif;
+  font-family: 'Miriam Libre', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;

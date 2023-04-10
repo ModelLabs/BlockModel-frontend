@@ -287,16 +287,21 @@ export default {
         if(response.data.result=="true") {
           this.SET_USER_EMAIL(email);
           this.ifCodeError = false;
-          
+          this.verifyLoading = false;
+          this.emailDialogVisible = false;
         }
         else{
           console.log("verify email error: Wrong Code", "\nPlease try again");
           this.ifCodeError = true;
+          this.emailDialogVisible = true;
+          this.verifyLoading = false;
         } 
       }
       else {
         console.log("verify email error: ",error, "\nPlease try again");
         this.ifCodeError = true;
+        this.emailDialogVisible = true;
+        this.verifyLoading = false;
       }
       // this.axios.post('/api/authcode',{user:email, code:code}).then(
       //   result => {
@@ -315,8 +320,7 @@ export default {
       //     _this.ifCodeError = true;
       //   }
       // )
-      this.verifyLoading = false;
-      this.emailDialogVisible = false;
+
     }
   },
   mounted() {
