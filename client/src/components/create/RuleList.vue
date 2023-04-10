@@ -78,7 +78,7 @@ export default {
   height: 100%;
   margin: 0;
   h4 {
-    letter-spacing: 0.2ch;
+    // letter-spacing: 0.2ch;
     margin-left: 10px;
   }
   .rule-lists {
