@@ -295,6 +295,8 @@ export default {
             obj.set("simulateId",id);
             obj.set("data",tmpObj);
             await this.$indexedDB.addData("historySimulationData", obj);
+
+            await this.prepareIdList();
         },
         /**
          更新 indexdb 中的历史模型数据

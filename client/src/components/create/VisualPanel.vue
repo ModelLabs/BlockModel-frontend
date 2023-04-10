@@ -2,7 +2,7 @@
   <el-collapse-transition>
     <div class="visual-panel">
       <div  v-if="simulating" class="generating">
-        <h2>The calculation data of the current model is being generated, please restart the window to view later.</h2>
+        <h2>The calculation data of the current model is being generated, please wait.</h2>
       </div>
       
       <!-- <span class="help"
@@ -1799,7 +1799,7 @@ export default {
     margin-top: 10px;
     margin-left: 10px;
     width: 20%;
-    height: 600px;
+    height: 500px;
     overflow: scroll;
     .el-collapse-item__header {
       padding-left: 5%;
