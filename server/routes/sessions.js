@@ -1,6 +1,7 @@
 var express = require('express')
 var router = express.Router()
 const Session = require('../model/Session')
+const schedule = require('node-schdule')
 
 const leandro = (nome, frontEndDev) => {
 	return {
@@ -8,6 +9,38 @@ const leandro = (nome, frontEndDev) => {
 		leandro
 	}
 }
+
+// schedule task for removing expired sessions 
+const scheduleCronstyle = () => {
+  schedule.scheduleJob('*/15 * * * *', () => {
+    console.log('scheduleCronstyle:' + new Date());
+    Session.findAll().then(sessions => {
+      sessions.forEach(element => {
+        console.log(element._calltimes)
+        if (Date.now() - Number(element._calltimes) > 900000) {
+          Session.destroy({
+            where: {
+              _id: element._id
+            }
+          })
+            .then((result) => {
+              if (result > 0) {
+                console.log('expired Session Deleted!')
+              } else {
+                console.log('No Session!')
+              }
+            })
+            .catch(err => {
+              console.log('error: ' + err)
+            })
+        }
+      });
+    }).catch(err => {
+      console.log('error: ' + err)
+    })
+  });
+}
+scheduleCronstyle();
 
 // Get replay test
 router.get('/', (req, res) => {
