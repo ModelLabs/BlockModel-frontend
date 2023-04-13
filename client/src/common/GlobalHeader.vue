@@ -3,7 +3,7 @@
     <div class="header-box">
       <ul class="topnav">
         <li class="logo-box">
-          <router-link to="/home">
+          <router-link to="/explore">
             <img src="../assets/BlockModellogo.png" alt="logo" class="logo" />
           </router-link>
         </li>
