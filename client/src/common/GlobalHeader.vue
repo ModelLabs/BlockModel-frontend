@@ -7,6 +7,9 @@
             <img src="../assets/BlockModellogo.png" alt="logo" class="logo" />
           </router-link>
         </li>
+        <li>
+          <img src="../assets/BetaTag.png" alt="version" class="version" />
+        </li>
         <!-- <li class="search-box">
           <div class="search-input-outside">
             <el-input
@@ -357,6 +360,10 @@ export default {
     box-shadow: 0 1px 1px rgba(255, 255, 255, 0.5), 0 0 6px rgba(74, 141, 223, 0.5);
     .logo {
       margin: 10px 55px;
+      width: 50px;
+    }
+    .version {
+      margin: 10px 0px;
       width: 50px;
     }
     .logo-box {
