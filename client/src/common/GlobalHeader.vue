@@ -120,7 +120,9 @@
         <router-link tag="li" to="/create" class="left">
           <span>Create</span>
         </router-link>
-        
+        <router-link tag="li" to="/resources" class="left">
+          <span>Resources</span>
+        </router-link>
       </ul>
     </div>
   </div>
