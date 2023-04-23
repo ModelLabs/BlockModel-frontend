@@ -365,7 +365,7 @@ export default {
       width: 50px;
     }
     .version {
-      margin: 10px 0px;
+      margin: 30px 0px;
       width: 50px;
     }
     .logo-box {
