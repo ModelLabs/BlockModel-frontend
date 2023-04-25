@@ -51,9 +51,8 @@ ChartJS.register(...registerables, dragdataPlugin)
 
 
 export default {
-    //TODO  希望通过 props 传递过来的值, 直接就是 policyFunction.value, 和 tokenName.value, 
-    // 是在父组件中通过 index 下标指定的，就不需要把整个 policyData 传过来了，也不需要传 index 了
-    props: ["edgeID","policyData", "policyIndex"],
+    //TODO 由于此 PolicyVisualForDesign 是为Tokenomics Design 部分适配的，和 PolicyVisual 逻辑相同，但是一些变量上稍有不同
+    props: ["policyData"],
     data() {
         return {
             newPoint: {
@@ -66,10 +65,9 @@ export default {
         }
     },
     mounted() {
-        console.log("policy index:", this.policyIndex);
         console.log("policy data:", this.policyData);
-        this.datapoints = this.policyData.policyFunction[this.policyIndex].value.datapoints;
-        this.radio = this.policyData.policyFunction[this.policyIndex].value.type
+        this.datapoints = this.policyData.datapoints;
+        this.radio = this.policyData.type
         console.log("init datapoints", this.datapoints);
         console.log("init radio", this.radio);
         if (this.radio == "amount") {
@@ -119,8 +117,8 @@ export default {
 
         submit() {
             console.log("datapoints:", this.datapoints);
-            this.policyData.policyFunction[this.policyIndex].value.type = this.radio;
-            this.policyData.policyFunction[this.policyIndex].value.datapoints = this.datapoints;
+            this.policyData.type = this.radio;
+            this.policyData.datapoints = this.datapoints;
         },
         clear() {
             this.datapoints = new Array();
@@ -129,7 +127,6 @@ export default {
 
         renderCanvas() {
             let _this = this;
-            console.log("label:", this.policyData.tokenName[this.policyIndex].value);
             this.$nextTick(()=>{
                 let chartStatus = ChartJS.getChart(this.$refs.chart); // <canvas> id
                 if (chartStatus != undefined) {
@@ -140,7 +137,7 @@ export default {
                     data: {
                         "datasets": [
                             {
-                                label: this.policyData.tokenName[this.policyIndex].value,
+                                label: "Token",
                                 data: this.datapoints,
                                 "backgroundColor": "rgba(255, 99, 132, 1)",
                                 borderWidth: 2.5,
