@@ -114,8 +114,8 @@
         <router-link tag="li" to="/explore" class="left">
           <span>Explore</span>
         </router-link>
-        <router-link tag="li" to="/copilot" class="left">
-          <span>CoPilot</span>
+        <router-link tag="li" to="/design" class="left">
+          <span>Design</span>
         </router-link>
         <router-link tag="li" to="/create" class="left">
           <span>Create</span>

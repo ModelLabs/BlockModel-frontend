@@ -1,461 +1,384 @@
 <template>
-  <div class="container">
-    <div class="tokenomics-content">
-      <h3 class="select-title">Design Your Tokenomics</h3>
-      <span>Token Symbol</span><el-input v-model="tokenSymbol" size="small"></el-input>
-      <span>Token Supply</span><el-input v-model="tokenSupply" size="small"></el-input>
-      <span>Vesting Schedule</span>
-      <el-form 
-        :model="dynamicValidateForm" 
-        ref="dynamicValidateForm" 
-        label-width="100px">
+    <div>
+        <div class="tag-selection">
+            <h3 class="select-title">Select tags</h3>
+            <div class="select-type">
+                <h4 class="tag-title">Project Type</h4>
+                <el-tag :key="tag.index" v-for="tag in typeTags" :class="!tag.active ? 'type' : 'typeSelect'"
+                    @click="select(tag)">
+                    {{ tag.name }}
+                </el-tag>
+                <el-input class="input-new-tag" v-if="typeInputVisible" v-model="typeInputValue" ref="saveTypeTagInput"
+                    size="small" @keyup.enter="handleTypeInputConfirm" @blur="handleTypeInputConfirm">
+                </el-input>
+                <el-button v-else class="button-new-tag" size="small" @click="showTypeInput">+ New Tag</el-button>
+            </div>
 
-        <el-form-item
-          class="form-item"
-          v-for="(stakeholderobj, index) in dynamicValidateForm.stakeholders"
-          :label="'Stakeholder' + index"
-          :key="stakeholderobj.key"
-         
-        >
-          <div>
-            <span>Name</span><el-input v-model="stakeholderobj.stakeholder" class="stakeholder-edit-input" size="small"></el-input>
-          </div>
-          <div>
-            <span>Allocation</span><el-input v-model="stakeholderobj.allocation" class="stakeholder-edit-input" size="small"></el-input>
-          </div>
-          <div>
-            <span>Vesting Policy</span>
-            <el-button class="visual-button" @click="openVisualSetting(index)">
-              Visual Setting
-            </el-button>
-            
-            <el-dialog
-                title="Policy Visual Setting"
-                :visible.sync="visualSettingVisible"
-                :modal-append-to-body='true'
-                :append-to-body='true'
-                v-if="selectedPolicyIndex == index"
+            <div class="select-token-kind">
+                <h4 class="tag-title">Token System</h4>
+                <el-tag :key="tag.index" v-for="tag in tokenKindTags" :class="!tag.active ? 'tokenKind' : 'tokenKindSelect'"
+                    @click="selectToken(tag)">
+                    {{ tag.name }}
+                </el-tag>
+            </div>
+        </div>
+        <div class="token-tag" v-if="editableTabs.length">
+            <el-tabs v-model="editableTabsValue" type="card" @tab-click="tabClickFunc">
+                <el-tab-pane
+                v-for="item in editableTabs"
+                :key="item.name"
+                :label="item.title"
+                :name="item.name"
                 >
-                <PolicyVisual :policyData="stakeholderobj.vesting_policy"/>
-            </el-dialog>
-          </div>
+                    <div v-if="item.content === 'one'">
+                        <div class="select-goal general">
+                            <h4 class="tag-title">Goal</h4>
+                            <el-tag :key="tag.index" v-for="tag in tokenTags.one.goalTags" :class="!tag.active ? 'goal' : 'goalSelect'"
+                                @click="select(tag)">
+                                {{ tag.name }}
+                            </el-tag>
+                            <el-input class="input-new-tag" v-if="goalInputVisible" v-model="goalInputValue"
+                                size="small" @keyup.enter="handleGoalInputConfirm(item.content,item.name)" @blur="handleGoalInputConfirm(item.content,item.name)">
+                            </el-input>
+                            <el-button v-else class="button-new-tag" size="small" @click="showGoalInput">+ New Tag</el-button>
+                        </div>
 
-          
-          <el-button @click.prevent="removeDomain(index)" class="del-button" size="mini">-</el-button>
-        </el-form-item>
+                        <div class="select-capabilities general">
+                            <h4 class="tag-title">Capabilities</h4>
+                            <el-tag :key="tag.index" v-for="tag in tokenTags.one.capabilitiesTags" :class="!tag.active ? 'capabilities' : 'capabilitiesSelect'"
+                                @click="select(tag)">
+                                {{ tag.name }}
+                            </el-tag>
+                            <el-input class="input-new-tag" v-if="capInputVisible" v-model="capInputValue"
+                                size="small" @keyup.enter="handleCapInputConfirm(item.content,item.name)" @blur="handleCapInputConfirm(item.content,item.name)">
+                            </el-input>
+                            <el-button v-else class="button-new-tag" size="small" @click="showCapInput">+ New Tag</el-button>
+                        </div>
 
-        <!-- <el-form-item
-          class="form-item"
-          v-for="(tokenAmount, index) in dynamicValidateForm.tokenAmount"
-          :label="'Amount' + index"
-          :key="tokenAmount.key"
-          :prop="'tokenAmount.' + index + '.value'"
-          :rules="{
-            required: true, message: 'Please input tokenAmount', trigger: 'blur'
-          }"
-        >
-          <el-input v-model="tokenAmount.value" class="stakeholder-edit-input" size="small"></el-input>
-          <el-button @click.prevent="removeDomain(tokenAmount)" class="del-button" size="mini">-</el-button>
-        </el-form-item> -->
+                        <div class="select-velocity general">
+                            <h4 class="tag-title">Token Velocity</h4>
+                            <el-tag :key="tag.index" v-for="tag in tokenTags.one.velocityTags" :class="!tag.active ? 'velocity' : 'velocitySelect'"
+                                @click="selectVel(item.content,item.name,tag)">
+                                {{ tag.name }}
+                            </el-tag>
+                            <el-input class="input-new-tag" v-if="velInputVisible" v-model="velInputValue"
+                                size="small" @keyup.enter="handleVelInputConfirm(item.content,item.name)" @blur="handleVelInputConfirm(item.content,item.name)">
+                            </el-input>
+                            <el-button v-else class="button-new-tag" size="small" @click="showVelInput">+ New Tag</el-button>
+                        </div>
 
-        <el-form-item class="form-item">
-          <el-button @click="addDomain" class="add-button" size="mini">+</el-button>
-          <el-button 
-            @click="submitForm('dynamicValidateForm')" 
-            class="submit-button" 
-            size="mini">Done</el-button>
-        </el-form-item>
+                        <div class="select-distributions-targets general">
+                            <h4 class="tag-title">Token Distributions Targets</h4>
+                            <el-tag :key="tag.index" v-for="tag in tokenTags.one.distributionsTargetsTags" :class="!tag.active ? 'distributionsTargets' : 'distributionsTargetsSelect'"
+                                @click="select(tag)">
+                                {{ tag.name }}
+                            </el-tag>
+                            <el-input class="input-new-tag" v-if="dtInputVisible" v-model="dtInputValue"
+                                size="small" @keyup.enter="handleDTInputConfirm(item.content,item.name)" @blur="handleDTInputConfirm(item.content,item.name)">
+                            </el-input>
+                            <el-button v-else class="button-new-tag" size="small" @click="showDTInput">+ New Tag</el-button>
+                        </div>
+                    </div>
+                    <div v-if="item.content === 'two'">
+                        <div v-if="item.name === 'firstToken'">
+                            <div class="select-goal general">
+                                <h4 class="tag-title">Goal</h4>
+                                <el-tag :key="tag.index" v-for="tag in tokenTags.two.firstToken.goalTags" :class="!tag.active ? 'goal' : 'goalSelect'"
+                                    @click="select(tag)">
+                                    {{ tag.name }}
+                                </el-tag>
+                                <el-input class="input-new-tag" v-if="goalInputVisible" v-model="goalInputValue"
+                                    size="small" @keyup.enter="handleGoalInputConfirm(item.content,item.name)" @blur="handleGoalInputConfirm(item.content,item.name)">
+                                </el-input>
+                                <el-button v-else class="button-new-tag" size="small" @click="showGoalInput">+ New Tag</el-button>
+                            </div>
 
-      </el-form>   
-    </div>
-    <div class="tag-selection">
-      <h3 class="select-title">Select tags</h3>
-      <div class="select-type">
-        <h4 class="tag-title">Project Type</h4>
-        <el-tag :key="tag.index" v-for="tag in typeTags" :class="!tag.active ? 'type' : 'typeSelect'"
-          @click="select(tag)">
-          {{ tag.name }}
-        </el-tag>
-        <el-input class="input-new-tag" v-if="typeInputVisible" v-model="typeInputValue" ref="saveTypeTagInput"
-          size="small" @keyup.enter="handleTypeInputConfirm" @blur="handleTypeInputConfirm">
-        </el-input>
-        <el-button v-else class="button-new-tag" size="small" @click="showTypeInput">+ New Tag</el-button>
-      </div>
+                            <div class="select-capabilities general">
+                                <h4 class="tag-title">Capabilities</h4>
+                                <el-tag :key="tag.index" v-for="tag in tokenTags.two.firstToken.capabilitiesTags" :class="!tag.active ? 'capabilities' : 'capabilitiesSelect'"
+                                    @click="select(tag)">
+                                    {{ tag.name }}
+                                </el-tag>
+                                <el-input class="input-new-tag" v-if="capInputVisible" v-model="capInputValue"
+                                    size="small" @keyup.enter="handleCapInputConfirm(item.content,item.name)" @blur="handleCapInputConfirm(item.content,item.name)">
+                                </el-input>
+                                <el-button v-else class="button-new-tag" size="small" @click="showCapInput">+ New Tag</el-button>
+                            </div>
 
-      <div class="select-token-kind">
-        <h4 class="tag-title">Token System</h4>
-        <el-tag :key="tag.index" v-for="tag in tokenKindTags" :class="!tag.active ? 'tokenKind' : 'tokenKindSelect'"
-          @click="selectToken(tag)">
-          {{ tag.name }}
-        </el-tag>
-      </div>
-    </div>
+                            <div class="select-velocity general">
+                                <h4 class="tag-title">Token Velocity</h4>
+                                <el-tag :key="tag.index" v-for="tag in tokenTags.two.firstToken.velocityTags" :class="!tag.active ? 'velocity' : 'velocitySelect'"
+                                    @click="selectVel(item.content,item.name,tag)">
+                                    {{ tag.name }}
+                                </el-tag>
+                                <el-input class="input-new-tag" v-if="velInputVisible" v-model="velInputValue"
+                                    size="small" @keyup.enter="handleVelInputConfirm(item.content,item.name)" @blur="handleVelInputConfirm(item.content,item.name)">
+                                </el-input>
+                                <el-button v-else class="button-new-tag" size="small" @click="showVelInput">+ New Tag</el-button>
+                            </div>
 
-    <div class="token-tag" v-if="editableTabs.length">
-      <el-tabs v-model="editableTabsValue" type="card" @tab-click="tabClickFunc">
-            <el-tab-pane
-              v-for="item in editableTabs"
-              :key="item.name"
-              :label="item.title"
-              :name="item.name"
-            >
-            <div v-if="item.content === 'one'">
-              <div class="select-goal general">
-                <h4 class="tag-title">Goal</h4>
-                <el-tag :key="tag.index" v-for="tag in tokenTags.one.goalTags" :class="!tag.active ? 'goal' : 'goalSelect'"
-                  @click="select(tag)">
-                  {{ tag.name }}
-                </el-tag>
-                <el-input class="input-new-tag" v-if="goalInputVisible" v-model="goalInputValue"
-                  size="small" @keyup.enter="handleGoalInputConfirm(item.content,item.name)" @blur="handleGoalInputConfirm(item.content,item.name)">
-                </el-input>
-                <el-button v-else class="button-new-tag" size="small" @click="showGoalInput">+ New Tag</el-button>
-              </div>
+                            <div class="select-distributions-targets general">
+                                <h4 class="tag-title">Token Distributions Targets</h4>
+                                <el-tag :key="tag.index" v-for="tag in tokenTags.two.firstToken.distributionsTargetsTags" :class="!tag.active ? 'distributionsTargets' : 'distributionsTargetsSelect'"
+                                    @click="select(tag)">
+                                    {{ tag.name }}
+                                </el-tag>
+                                <el-input class="input-new-tag" v-if="dtInputVisible" v-model="dtInputValue"
+                                    size="small" @keyup.enter="handleDTInputConfirm(item.content,item.name)" @blur="handleDTInputConfirm(item.content,item.name)">
+                                </el-input>
+                                <el-button v-else class="button-new-tag" size="small" @click="showDTInput">+ New Tag</el-button>
+                            </div>
+                        </div>
+                        <div v-else>
+                            <div class="select-goal general">
+                                <h4 class="tag-title">Goal</h4>
+                                <el-tag :key="tag.index" v-for="tag in tokenTags.two.secondToken.goalTags" :class="!tag.active ? 'goal' : 'goalSelect'"
+                                    @click="select(tag)">
+                                    {{ tag.name }}
+                                </el-tag>
+                                <el-input class="input-new-tag" v-if="goalInputVisible" v-model="goalInputValue"
+                                    size="small" @keyup.enter="handleGoalInputConfirm(item.content,item.name)" @blur="handleGoalInputConfirm(item.content,item.name)">
+                                </el-input>
+                                <el-button v-else class="button-new-tag" size="small" @click="showGoalInput">+ New Tag</el-button>
+                            </div>
 
-              <div class="select-capabilities general">
-                <h4 class="tag-title">Capabilities</h4>
-                <el-tag :key="tag.index" v-for="tag in tokenTags.one.capabilitiesTags" :class="!tag.active ? 'capabilities' : 'capabilitiesSelect'"
-                  @click="select(tag)">
-                  {{ tag.name }}
-                </el-tag>
-                <el-input class="input-new-tag" v-if="capInputVisible" v-model="capInputValue"
-                  size="small" @keyup.enter="handleCapInputConfirm(item.content,item.name)" @blur="handleCapInputConfirm(item.content,item.name)">
-                </el-input>
-                <el-button v-else class="button-new-tag" size="small" @click="showCapInput">+ New Tag</el-button>
-              </div>
+                            <div class="select-capabilities general">
+                                <h4 class="tag-title">Capabilities</h4>
+                                <el-tag :key="tag.index" v-for="tag in tokenTags.two.secondToken.capabilitiesTags" :class="!tag.active ? 'capabilities' : 'capabilitiesSelect'"
+                                    @click="select(tag)">
+                                    {{ tag.name }}
+                                </el-tag>
+                                <el-input class="input-new-tag" v-if="capInputVisible" v-model="capInputValue"
+                                    size="small" @keyup.enter="handleCapInputConfirm(item.content,item.name)" @blur="handleCapInputConfirm(item.content,item.name)">
+                                </el-input>
+                                <el-button v-else class="button-new-tag" size="small" @click="showCapInput">+ New Tag</el-button>
+                            </div>
 
-               <div class="select-velocity general">
-                <h4 class="tag-title">Token Velocity</h4>
-                <el-tag :key="tag.index" v-for="tag in tokenTags.one.velocityTags" :class="!tag.active ? 'velocity' : 'velocitySelect'"
-                  @click="selectVel(item.content,item.name,tag)">
-                  {{ tag.name }}
-                </el-tag>
-                <el-input class="input-new-tag" v-if="velInputVisible" v-model="velInputValue"
-                  size="small" @keyup.enter="handleVelInputConfirm(item.content,item.name)" @blur="handleVelInputConfirm(item.content,item.name)">
-                </el-input>
-                <el-button v-else class="button-new-tag" size="small" @click="showVelInput">+ New Tag</el-button>
-              </div>
+                            <div class="select-velocity general">
+                                <h4 class="tag-title">Token Velocity</h4>
+                                <el-tag :key="tag.index" v-for="tag in tokenTags.two.secondToken.velocityTags" :class="!tag.active ? 'velocity' : 'velocitySelect'"
+                                    @click="selectVel(item.content,item.name,tag)">
+                                    {{ tag.name }}
+                                </el-tag>
+                                <el-input class="input-new-tag" v-if="velInputVisible" v-model="velInputValue"
+                                    size="small" @keyup.enter="handleVelInputConfirm(item.content,item.name)" @blur="handleVelInputConfirm(item.content,item.name)">
+                                </el-input>
+                                <el-button v-else class="button-new-tag" size="small" @click="showVelInput">+ New Tag</el-button>
+                            </div>
 
-              <div class="select-distributions-targets general">
-                <h4 class="tag-title">Token Distributions Targets</h4>
-                <el-tag :key="tag.index" v-for="tag in tokenTags.one.distributionsTargetsTags" :class="!tag.active ? 'distributionsTargets' : 'distributionsTargetsSelect'"
-                  @click="select(tag)">
-                  {{ tag.name }}
-                </el-tag>
-                <el-input class="input-new-tag" v-if="dtInputVisible" v-model="dtInputValue"
-                  size="small" @keyup.enter="handleDTInputConfirm(item.content,item.name)" @blur="handleDTInputConfirm(item.content,item.name)">
-                </el-input>
-                <el-button v-else class="button-new-tag" size="small" @click="showDTInput">+ New Tag</el-button>
-              </div>
+                            <div class="select-distributions-targets general">
+                                <h4 class="tag-title">Token Distributions Targets</h4>
+                                <el-tag :key="tag.index" v-for="tag in tokenTags.two.secondToken.distributionsTargetsTags" :class="!tag.active ? 'distributionsTargets' : 'distributionsTargetsSelect'"
+                                    @click="select(tag)">
+                                    {{ tag.name }}
+                                </el-tag>
+                                <el-input class="input-new-tag" v-if="dtInputVisible" v-model="dtInputValue"
+                                    size="small" @keyup.enter="handleDTInputConfirm(item.content,item.name)" @blur="handleDTInputConfirm(item.content,item.name)">
+                                </el-input>
+                                <el-button v-else class="button-new-tag" size="small" @click="showDTInput">+ New Tag</el-button>
+                            </div>
+                        </div>
+                    </div>
 
-            </div>
-            <div v-if="item.content === 'two'">
-              <div v-if="item.name === 'firstToken'">
-                <div class="select-goal general">
-                  <h4 class="tag-title">Goal</h4>
-                  <el-tag :key="tag.index" v-for="tag in tokenTags.two.firstToken.goalTags" :class="!tag.active ? 'goal' : 'goalSelect'"
-                    @click="select(tag)">
-                    {{ tag.name }}
-                  </el-tag>
-                  <el-input class="input-new-tag" v-if="goalInputVisible" v-model="goalInputValue"
-                    size="small" @keyup.enter="handleGoalInputConfirm(item.content,item.name)" @blur="handleGoalInputConfirm(item.content,item.name)">
-                  </el-input>
-                  <el-button v-else class="button-new-tag" size="small" @click="showGoalInput">+ New Tag</el-button>
-                </div>
+                    <div v-if="item.content === 'three'">
+                        <div v-if="item.name === 'firstToken'">
+                            <div class="select-goal general">
+                                <h4 class="tag-title">Goal</h4>
+                                <el-tag :key="tag.index" v-for="tag in tokenTags.three.firstToken.goalTags" :class="!tag.active ? 'goal' : 'goalSelect'"
+                                    @click="select(tag)">
+                                    {{ tag.name }}
+                                </el-tag>
+                                <el-input class="input-new-tag" v-if="goalInputVisible" v-model="goalInputValue"
+                                    size="small" @keyup.enter="handleGoalInputConfirm(item.content,item.name)" @blur="handleGoalInputConfirm(item.content,item.name)">
+                                </el-input>
+                                <el-button v-else class="button-new-tag" size="small" @click="showGoalInput">+ New Tag</el-button>
+                            </div>
 
-                <div class="select-capabilities general">
-                  <h4 class="tag-title">Capabilities</h4>
-                  <el-tag :key="tag.index" v-for="tag in tokenTags.two.firstToken.capabilitiesTags" :class="!tag.active ? 'capabilities' : 'capabilitiesSelect'"
-                    @click="select(tag)">
-                    {{ tag.name }}
-                  </el-tag>
-                  <el-input class="input-new-tag" v-if="capInputVisible" v-model="capInputValue"
-                    size="small" @keyup.enter="handleCapInputConfirm(item.content,item.name)" @blur="handleCapInputConfirm(item.content,item.name)">
-                  </el-input>
-                  <el-button v-else class="button-new-tag" size="small" @click="showCapInput">+ New Tag</el-button>
-                </div>
+                            <div class="select-capabilities general">
+                                <h4 class="tag-title">Capabilities</h4>
+                                <el-tag :key="tag.index" v-for="tag in tokenTags.three.firstToken.capabilitiesTags" :class="!tag.active ? 'capabilities' : 'capabilitiesSelect'"
+                                    @click="select(tag)">
+                                    {{ tag.name }}
+                                </el-tag>
+                                <el-input class="input-new-tag" v-if="capInputVisible" v-model="capInputValue"
+                                    size="small" @keyup.enter="handleCapInputConfirm(item.content,item.name)" @blur="handleCapInputConfirm(item.content,item.name)">
+                                </el-input>
+                                <el-button v-else class="button-new-tag" size="small" @click="showCapInput">+ New Tag</el-button>
+                            </div>
 
-                <div class="select-velocity general">
-                  <h4 class="tag-title">Token Velocity</h4>
-                  <el-tag :key="tag.index" v-for="tag in tokenTags.two.firstToken.velocityTags" :class="!tag.active ? 'velocity' : 'velocitySelect'"
-                    @click="selectVel(item.content,item.name,tag)">
-                    {{ tag.name }}
-                  </el-tag>
-                  <el-input class="input-new-tag" v-if="velInputVisible" v-model="velInputValue"
-                    size="small" @keyup.enter="handleVelInputConfirm(item.content,item.name)" @blur="handleVelInputConfirm(item.content,item.name)">
-                  </el-input>
-                  <el-button v-else class="button-new-tag" size="small" @click="showVelInput">+ New Tag</el-button>
-                </div>
+                            <div class="select-velocity general">
+                                <h4 class="tag-title">Token Velocity</h4>
+                                <el-tag :key="tag.index" v-for="tag in tokenTags.three.firstToken.velocityTags" :class="!tag.active ? 'velocity' : 'velocitySelect'"
+                                    @click="selectVel(item.content,item.name,tag)">
+                                    {{ tag.name }}
+                                </el-tag>
+                                <el-input class="input-new-tag" v-if="velInputVisible" v-model="velInputValue"
+                                    size="small" @keyup.enter="handleVelInputConfirm(item.content,item.name)" @blur="handleVelInputConfirm(item.content,item.name)">
+                                </el-input>
+                                <el-button v-else class="button-new-tag" size="small" @click="showVelInput">+ New Tag</el-button>
+                            </div>
 
-                <div class="select-distributions-targets general">
-                  <h4 class="tag-title">Token Distributions Targets</h4>
-                  <el-tag :key="tag.index" v-for="tag in tokenTags.two.firstToken.distributionsTargetsTags" :class="!tag.active ? 'distributionsTargets' : 'distributionsTargetsSelect'"
-                    @click="select(tag)">
-                    {{ tag.name }}
-                  </el-tag>
-                  <el-input class="input-new-tag" v-if="dtInputVisible" v-model="dtInputValue"
-                    size="small" @keyup.enter="handleDTInputConfirm(item.content,item.name)" @blur="handleDTInputConfirm(item.content,item.name)">
-                  </el-input>
-                  <el-button v-else class="button-new-tag" size="small" @click="showDTInput">+ New Tag</el-button>
-                </div>
-              </div>
-              <div v-else>
-                <div class="select-goal general">
-                  <h4 class="tag-title">Goal</h4>
-                  <el-tag :key="tag.index" v-for="tag in tokenTags.two.secondToken.goalTags" :class="!tag.active ? 'goal' : 'goalSelect'"
-                    @click="select(tag)">
-                    {{ tag.name }}
-                  </el-tag>
-                  <el-input class="input-new-tag" v-if="goalInputVisible" v-model="goalInputValue"
-                    size="small" @keyup.enter="handleGoalInputConfirm(item.content,item.name)" @blur="handleGoalInputConfirm(item.content,item.name)">
-                  </el-input>
-                  <el-button v-else class="button-new-tag" size="small" @click="showGoalInput">+ New Tag</el-button>
-                </div>
+                            <div class="select-distributions-targets general">
+                                <h4 class="tag-title">Token Distributions Targets</h4>
+                                <el-tag :key="tag.index" v-for="tag in tokenTags.three.firstToken.distributionsTargetsTags" :class="!tag.active ? 'distributionsTargets' : 'distributionsTargetsSelect'"
+                                    @click="select(tag)">
+                                    {{ tag.name }}
+                                </el-tag>
+                                <el-input class="input-new-tag" v-if="dtInputVisible" v-model="dtInputValue"
+                                    size="small" @keyup.enter="handleDTInputConfirm(item.content,item.name)" @blur="handleDTInputConfirm(item.content,item.name)">
+                                </el-input>
+                                <el-button v-else class="button-new-tag" size="small" @click="showDTInput">+ New Tag</el-button>
+                            </div>
+                        </div>
 
-                <div class="select-capabilities general">
-                  <h4 class="tag-title">Capabilities</h4>
-                  <el-tag :key="tag.index" v-for="tag in tokenTags.two.secondToken.capabilitiesTags" :class="!tag.active ? 'capabilities' : 'capabilitiesSelect'"
-                    @click="select(tag)">
-                    {{ tag.name }}
-                  </el-tag>
-                  <el-input class="input-new-tag" v-if="capInputVisible" v-model="capInputValue"
-                    size="small" @keyup.enter="handleCapInputConfirm(item.content,item.name)" @blur="handleCapInputConfirm(item.content,item.name)">
-                  </el-input>
-                  <el-button v-else class="button-new-tag" size="small" @click="showCapInput">+ New Tag</el-button>
-                </div>
+                        <div v-else-if="item.name === 'secondToken'">
+                            <div class="select-goal general">
+                                <h4 class="tag-title">Goal</h4>
+                                <el-tag :key="tag.index" v-for="tag in tokenTags.three.secondToken.goalTags" :class="!tag.active ? 'goal' : 'goalSelect'"
+                                    @click="select(tag)">
+                                    {{ tag.name }}
+                                </el-tag>
+                                <el-input class="input-new-tag" v-if="goalInputVisible" v-model="goalInputValue"
+                                    size="small" @keyup.enter="handleGoalInputConfirm(item.content,item.name)" @blur="handleGoalInputConfirm(item.content,item.name)">
+                                </el-input>
+                                <el-button v-else class="button-new-tag" size="small" @click="showGoalInput">+ New Tag</el-button>
+                            </div>
 
-                <div class="select-velocity general">
-                  <h4 class="tag-title">Token Velocity</h4>
-                  <el-tag :key="tag.index" v-for="tag in tokenTags.two.secondToken.velocityTags" :class="!tag.active ? 'velocity' : 'velocitySelect'"
-                    @click="selectVel(item.content,item.name,tag)">
-                    {{ tag.name }}
-                  </el-tag>
-                  <el-input class="input-new-tag" v-if="velInputVisible" v-model="velInputValue"
-                    size="small" @keyup.enter="handleVelInputConfirm(item.content,item.name)" @blur="handleVelInputConfirm(item.content,item.name)">
-                  </el-input>
-                  <el-button v-else class="button-new-tag" size="small" @click="showVelInput">+ New Tag</el-button>
-                </div>
+                            <div class="select-capabilities general">
+                                <h4 class="tag-title">Capabilities</h4>
+                                <el-tag :key="tag.index" v-for="tag in tokenTags.three.secondToken.capabilitiesTags" :class="!tag.active ? 'capabilities' : 'capabilitiesSelect'"
+                                    @click="select(tag)">
+                                    {{ tag.name }}
+                                </el-tag>
+                                <el-input class="input-new-tag" v-if="capInputVisible" v-model="capInputValue"
+                                    size="small" @keyup.enter="handleCapInputConfirm(item.content,item.name)" @blur="handleCapInputConfirm(item.content,item.name)">
+                                </el-input>
+                                <el-button v-else class="button-new-tag" size="small" @click="showCapInput">+ New Tag</el-button>
+                            </div>
 
-                <div class="select-distributions-targets general">
-                  <h4 class="tag-title">Token Distributions Targets</h4>
-                  <el-tag :key="tag.index" v-for="tag in tokenTags.two.secondToken.distributionsTargetsTags" :class="!tag.active ? 'distributionsTargets' : 'distributionsTargetsSelect'"
-                    @click="select(tag)">
-                    {{ tag.name }}
-                  </el-tag>
-                  <el-input class="input-new-tag" v-if="dtInputVisible" v-model="dtInputValue"
-                    size="small" @keyup.enter="handleDTInputConfirm(item.content,item.name)" @blur="handleDTInputConfirm(item.content,item.name)">
-                  </el-input>
-                  <el-button v-else class="button-new-tag" size="small" @click="showDTInput">+ New Tag</el-button>
-                </div>
-              </div>
+                            <div class="select-velocity general">
+                                <h4 class="tag-title">Token Velocity</h4>
+                                <el-tag :key="tag.index" v-for="tag in tokenTags.three.secondToken.velocityTags" :class="!tag.active ? 'velocity' : 'velocitySelect'"
+                                    @click="selectVel(item.content,item.name,tag)">
+                                    {{ tag.name }}
+                                </el-tag>
+                                <el-input class="input-new-tag" v-if="velInputVisible" v-model="velInputValue"
+                                    size="small" @keyup.enter="handleVelInputConfirm(item.content,item.name)" @blur="handleVelInputConfirm(item.content,item.name)">
+                                </el-input>
+                                <el-button v-else class="button-new-tag" size="small" @click="showVelInput">+ New Tag</el-button>
+                            </div>
 
-            </div>
+                            <div class="select-distributions-targets general">
+                                <h4 class="tag-title">Token Distributions Targets</h4>
+                                <el-tag :key="tag.index" v-for="tag in tokenTags.three.secondToken.distributionsTargetsTags" :class="!tag.active ? 'distributionsTargets' : 'distributionsTargetsSelect'"
+                                    @click="select(tag)">
+                                    {{ tag.name }}
+                                </el-tag>
+                                <el-input class="input-new-tag" v-if="dtInputVisible" v-model="dtInputValue"
+                                    size="small" @keyup.enter="handleDTInputConfirm(item.content,item.name)" @blur="handleDTInputConfirm(item.content,item.name)">
+                                </el-input>
+                                <el-button v-else class="button-new-tag" size="small" @click="showDTInput">+ New Tag</el-button>
+                            </div>
+                        </div>
 
-            <div v-if="item.content === 'three'">
-              <div v-if="item.name === 'firstToken'">
-                <div class="select-goal general">
-                  <h4 class="tag-title">Goal</h4>
-                  <el-tag :key="tag.index" v-for="tag in tokenTags.three.firstToken.goalTags" :class="!tag.active ? 'goal' : 'goalSelect'"
-                    @click="select(tag)">
-                    {{ tag.name }}
-                  </el-tag>
-                  <el-input class="input-new-tag" v-if="goalInputVisible" v-model="goalInputValue"
-                    size="small" @keyup.enter="handleGoalInputConfirm(item.content,item.name)" @blur="handleGoalInputConfirm(item.content,item.name)">
-                  </el-input>
-                  <el-button v-else class="button-new-tag" size="small" @click="showGoalInput">+ New Tag</el-button>
-                </div>
+                        <div v-else>
+                            <div class="select-goal general">
+                                <h4 class="tag-title">Goal</h4>
+                                <el-tag :key="tag.index" v-for="tag in tokenTags.three.thirdToken.goalTags" :class="!tag.active ? 'goal' : 'goalSelect'"
+                                    @click="select(tag)">
+                                    {{ tag.name }}
+                                </el-tag>
+                                <el-input class="input-new-tag" v-if="goalInputVisible" v-model="goalInputValue"
+                                    size="small" @keyup.enter="handleGoalInputConfirm(item.content,item.name)" @blur="handleGoalInputConfirm(item.content,item.name)">
+                                </el-input>
+                                <el-button v-else class="button-new-tag" size="small" @click="showGoalInput">+ New Tag</el-button>
+                            </div>
 
-                <div class="select-capabilities general">
-                  <h4 class="tag-title">Capabilities</h4>
-                  <el-tag :key="tag.index" v-for="tag in tokenTags.three.firstToken.capabilitiesTags" :class="!tag.active ? 'capabilities' : 'capabilitiesSelect'"
-                    @click="select(tag)">
-                    {{ tag.name }}
-                  </el-tag>
-                  <el-input class="input-new-tag" v-if="capInputVisible" v-model="capInputValue"
-                    size="small" @keyup.enter="handleCapInputConfirm(item.content,item.name)" @blur="handleCapInputConfirm(item.content,item.name)">
-                  </el-input>
-                  <el-button v-else class="button-new-tag" size="small" @click="showCapInput">+ New Tag</el-button>
-                </div>
+                            <div class="select-capabilities general">
+                                <h4 class="tag-title">Capabilities</h4>
+                                <el-tag :key="tag.index" v-for="tag in tokenTags.three.thirdToken.capabilitiesTags" :class="!tag.active ? 'capabilities' : 'capabilitiesSelect'"
+                                    @click="select(tag)">
+                                    {{ tag.name }}
+                                </el-tag>
+                                <el-input class="input-new-tag" v-if="capInputVisible" v-model="capInputValue"
+                                    size="small" @keyup.enter="handleCapInputConfirm(item.content,item.name)" @blur="handleCapInputConfirm(item.content,item.name)">
+                                </el-input>
+                                <el-button v-else class="button-new-tag" size="small" @click="showCapInput">+ New Tag</el-button>
+                            </div>
 
-                <div class="select-velocity general">
-                  <h4 class="tag-title">Token Velocity</h4>
-                  <el-tag :key="tag.index" v-for="tag in tokenTags.three.firstToken.velocityTags" :class="!tag.active ? 'velocity' : 'velocitySelect'"
-                    @click="selectVel(item.content,item.name,tag)">
-                    {{ tag.name }}
-                  </el-tag>
-                  <el-input class="input-new-tag" v-if="velInputVisible" v-model="velInputValue"
-                    size="small" @keyup.enter="handleVelInputConfirm(item.content,item.name)" @blur="handleVelInputConfirm(item.content,item.name)">
-                  </el-input>
-                  <el-button v-else class="button-new-tag" size="small" @click="showVelInput">+ New Tag</el-button>
-                </div>
+                            <div class="select-velocity general">
+                                <h4 class="tag-title">Token Velocity</h4>
+                                <el-tag :key="tag.index" v-for="tag in tokenTags.three.thirdToken.velocityTags" :class="!tag.active ? 'velocity' : 'velocitySelect'"
+                                    @click="selectVel(item.content,item.name,tag)">
+                                    {{ tag.name }}
+                                </el-tag>
+                                <el-input class="input-new-tag" v-if="velInputVisible" v-model="velInputValue"
+                                    size="small" @keyup.enter="handleVelInputConfirm(item.content,item.name)" @blur="handleVelInputConfirm(item.content,item.name)">
+                                </el-input>
+                                <el-button v-else class="button-new-tag" size="small" @click="showVelInput">+ New Tag</el-button>
+                            </div>
 
-                <div class="select-distributions-targets general">
-                  <h4 class="tag-title">Token Distributions Targets</h4>
-                  <el-tag :key="tag.index" v-for="tag in tokenTags.three.firstToken.distributionsTargetsTags" :class="!tag.active ? 'distributionsTargets' : 'distributionsTargetsSelect'"
-                    @click="select(tag)">
-                    {{ tag.name }}
-                  </el-tag>
-                  <el-input class="input-new-tag" v-if="dtInputVisible" v-model="dtInputValue"
-                    size="small" @keyup.enter="handleDTInputConfirm(item.content,item.name)" @blur="handleDTInputConfirm(item.content,item.name)">
-                  </el-input>
-                  <el-button v-else class="button-new-tag" size="small" @click="showDTInput">+ New Tag</el-button>
-                </div>
-              </div>
-
-              <div v-else-if="item.name === 'secondToken'">
-                <div class="select-goal general">
-                  <h4 class="tag-title">Goal</h4>
-                  <el-tag :key="tag.index" v-for="tag in tokenTags.three.secondToken.goalTags" :class="!tag.active ? 'goal' : 'goalSelect'"
-                    @click="select(tag)">
-                    {{ tag.name }}
-                  </el-tag>
-                  <el-input class="input-new-tag" v-if="goalInputVisible" v-model="goalInputValue"
-                    size="small" @keyup.enter="handleGoalInputConfirm(item.content,item.name)" @blur="handleGoalInputConfirm(item.content,item.name)">
-                  </el-input>
-                  <el-button v-else class="button-new-tag" size="small" @click="showGoalInput">+ New Tag</el-button>
-                </div>
-
-                <div class="select-capabilities general">
-                  <h4 class="tag-title">Capabilities</h4>
-                  <el-tag :key="tag.index" v-for="tag in tokenTags.three.secondToken.capabilitiesTags" :class="!tag.active ? 'capabilities' : 'capabilitiesSelect'"
-                    @click="select(tag)">
-                    {{ tag.name }}
-                  </el-tag>
-                  <el-input class="input-new-tag" v-if="capInputVisible" v-model="capInputValue"
-                    size="small" @keyup.enter="handleCapInputConfirm(item.content,item.name)" @blur="handleCapInputConfirm(item.content,item.name)">
-                  </el-input>
-                  <el-button v-else class="button-new-tag" size="small" @click="showCapInput">+ New Tag</el-button>
-                </div>
-
-                <div class="select-velocity general">
-                  <h4 class="tag-title">Token Velocity</h4>
-                  <el-tag :key="tag.index" v-for="tag in tokenTags.three.secondToken.velocityTags" :class="!tag.active ? 'velocity' : 'velocitySelect'"
-                    @click="selectVel(item.content,item.name,tag)">
-                    {{ tag.name }}
-                  </el-tag>
-                  <el-input class="input-new-tag" v-if="velInputVisible" v-model="velInputValue"
-                    size="small" @keyup.enter="handleVelInputConfirm(item.content,item.name)" @blur="handleVelInputConfirm(item.content,item.name)">
-                  </el-input>
-                  <el-button v-else class="button-new-tag" size="small" @click="showVelInput">+ New Tag</el-button>
-                </div>
-
-                <div class="select-distributions-targets general">
-                  <h4 class="tag-title">Token Distributions Targets</h4>
-                  <el-tag :key="tag.index" v-for="tag in tokenTags.three.secondToken.distributionsTargetsTags" :class="!tag.active ? 'distributionsTargets' : 'distributionsTargetsSelect'"
-                    @click="select(tag)">
-                    {{ tag.name }}
-                  </el-tag>
-                  <el-input class="input-new-tag" v-if="dtInputVisible" v-model="dtInputValue"
-                    size="small" @keyup.enter="handleDTInputConfirm(item.content,item.name)" @blur="handleDTInputConfirm(item.content,item.name)">
-                  </el-input>
-                  <el-button v-else class="button-new-tag" size="small" @click="showDTInput">+ New Tag</el-button>
-                </div>
-              </div>
-
-              <div v-else>
-                <div class="select-goal general">
-                  <h4 class="tag-title">Goal</h4>
-                  <el-tag :key="tag.index" v-for="tag in tokenTags.three.thirdToken.goalTags" :class="!tag.active ? 'goal' : 'goalSelect'"
-                    @click="select(tag)">
-                    {{ tag.name }}
-                  </el-tag>
-                  <el-input class="input-new-tag" v-if="goalInputVisible" v-model="goalInputValue"
-                    size="small" @keyup.enter="handleGoalInputConfirm(item.content,item.name)" @blur="handleGoalInputConfirm(item.content,item.name)">
-                  </el-input>
-                  <el-button v-else class="button-new-tag" size="small" @click="showGoalInput">+ New Tag</el-button>
-                </div>
-
-                <div class="select-capabilities general">
-                  <h4 class="tag-title">Capabilities</h4>
-                  <el-tag :key="tag.index" v-for="tag in tokenTags.three.thirdToken.capabilitiesTags" :class="!tag.active ? 'capabilities' : 'capabilitiesSelect'"
-                    @click="select(tag)">
-                    {{ tag.name }}
-                  </el-tag>
-                  <el-input class="input-new-tag" v-if="capInputVisible" v-model="capInputValue"
-                    size="small" @keyup.enter="handleCapInputConfirm(item.content,item.name)" @blur="handleCapInputConfirm(item.content,item.name)">
-                  </el-input>
-                  <el-button v-else class="button-new-tag" size="small" @click="showCapInput">+ New Tag</el-button>
-                </div>
-
-                <div class="select-velocity general">
-                  <h4 class="tag-title">Token Velocity</h4>
-                  <el-tag :key="tag.index" v-for="tag in tokenTags.three.thirdToken.velocityTags" :class="!tag.active ? 'velocity' : 'velocitySelect'"
-                    @click="selectVel(item.content,item.name,tag)">
-                    {{ tag.name }}
-                  </el-tag>
-                  <el-input class="input-new-tag" v-if="velInputVisible" v-model="velInputValue"
-                    size="small" @keyup.enter="handleVelInputConfirm(item.content,item.name)" @blur="handleVelInputConfirm(item.content,item.name)">
-                  </el-input>
-                  <el-button v-else class="button-new-tag" size="small" @click="showVelInput">+ New Tag</el-button>
-                </div>
-
-                <div class="select-distributions-targets general">
-                  <h4 class="tag-title">Token Distributions Targets</h4>
-                  <el-tag :key="tag.index" v-for="tag in tokenTags.three.thirdToken.distributionsTargetsTags" :class="!tag.active ? 'distributionsTargets' : 'distributionsTargetsSelect'"
-                    @click="select(tag)">
-                    {{ tag.name }}
-                  </el-tag>
-                  <el-input class="input-new-tag" v-if="dtInputVisible" v-model="dtInputValue"
-                    size="small" @keyup.enter="handleDTInputConfirm(item.content,item.name)" @blur="handleDTInputConfirm(item.content,item.name)">
-                  </el-input>
-                  <el-button v-else class="button-new-tag" size="small" @click="showDTInput">+ New Tag</el-button>
-                </div>
-              </div>
-
-            </div>
-            </el-tab-pane>
-        </el-tabs>
-    </div>
-
-
-    <!-- <el-button round class="btn" @click="design"> -->
-    <el-button round class="btn" @click="btnClick" v-loading="showLoading">
-      <span class="text">Complete, design a tokenomic for me ~!</span>
-    </el-button>
-
-    <div class="loading" v-if="showLoading">
-      <span>
-        <i class="el-icon-loading"></i>
-        Please wait, I'm working hard to design for you.
-      </span>
-    </div>
-
-    <div class="communication" v-if="showChat">
-      <ul v-for="(item, index) in msglist" :key="index">
-        <div class="ai-answer" v-if="!item.user">
-          <AIPart :id="item.id" :drawChart="item.drawChart" :AIcontent="item.content" :piedata="item.piedata" :lineData="item.linedata" />
+                            <div class="select-distributions-targets general">
+                                <h4 class="tag-title">Token Distributions Targets</h4>
+                                <el-tag :key="tag.index" v-for="tag in tokenTags.three.thirdToken.distributionsTargetsTags" :class="!tag.active ? 'distributionsTargets' : 'distributionsTargetsSelect'"
+                                    @click="select(tag)">
+                                    {{ tag.name }}
+                                </el-tag>
+                                <el-input class="input-new-tag" v-if="dtInputVisible" v-model="dtInputValue"
+                                    size="small" @keyup.enter="handleDTInputConfirm(item.content,item.name)" @blur="handleDTInputConfirm(item.content,item.name)">
+                                </el-input>
+                                <el-button v-else class="button-new-tag" size="small" @click="showDTInput">+ New Tag</el-button>
+                            </div>
+                        </div>
+                    </div>
+                </el-tab-pane>
+            </el-tabs>
         </div>
-        <div class="user-msg" v-else>
-          <UserPart :id="item.id" :Usercontent="item.content" />
-        </div>
-        <!-- <RightItem :id="item.id" :type="item.type" :content="item.content" v-if="item.me"></RightItem>
-                    <LeftItem :id="item.id" :type="item.type" :content="item.content" v-else></LeftItem>
-                    <div v-scroll style="height: 0"></div> -->
-      </ul>
-      <!-- <div class="ai-answer">
-            <AIPart :AIcontent="AIcontent" :piedata="tmpPieChartData" :lineData="tmpLineChartData"/>
-        </div>
-        <div class="user-msg">
-            <UserPart :Usercontent="Usercontent" />
-        </div> -->
-    </div>
+        <el-button round class="btn" @click="btnClick" v-loading="showLoading">
+            <span class="text">Complete, design a tokenomic for me ~!</span>
+        </el-button>
 
-    <div class="input" v-if="showInput">
-      <el-input
-        placeholder="If you have any comments on the adjustment of the tokenomic we have designed, please enter it here and click the Send button."
-        v-model="sendValue">
-        <el-button slot="append" @click="onSubmit">Send</el-button>
-      </el-input>
-    </div>
+        <div class="loading" v-if="showLoading">
+            <span>
+                <i class="el-icon-loading"></i>
+                Please wait, I'm working hard to design for you.
+            </span>
+        </div>
 
-  </div>
+        <div class="communication" v-if="showChat">
+            <ul v-for="(item, index) in msglist" :key="index">
+                <div class="ai-answer" v-if="!item.user">
+                <AIPart :id="item.id" :drawChart="item.drawChart" :AIcontent="item.content" :piedata="item.piedata" :lineData="item.linedata" />
+                </div>
+                <div class="user-msg" v-else>
+                <UserPart :id="item.id" :Usercontent="item.content" />
+                </div>
+                <!-- <RightItem :id="item.id" :type="item.type" :content="item.content" v-if="item.me"></RightItem>
+                            <LeftItem :id="item.id" :type="item.type" :content="item.content" v-else></LeftItem>
+                            <div v-scroll style="height: 0"></div> -->
+            </ul>
+            <!-- <div class="ai-answer">
+                    <AIPart :AIcontent="AIcontent" :piedata="tmpPieChartData" :lineData="tmpLineChartData"/>
+                </div>
+                <div class="user-msg">
+                    <UserPart :Usercontent="Usercontent" />
+                </div> -->
+        </div>
+
+        <div class="input" v-if="showInput">
+            <el-input
+                placeholder="If you have any comments on the adjustment of the tokenomic we have designed, please enter it here and click the Send button."
+                v-model="sendValue">
+                <el-button slot="append" @click="onSubmit">Send</el-button>
+            </el-input>
+        </div>
+    </div>
 </template>
 <script>
 import { mapState, mapMutations, mapActions } from "vuex";
-import UserPart from '../components/AI/UserPart.vue'
-import AIPart from '../components/AI/AIPart.vue'
-import { percentageToNumber, checkSumObj, checkSumArray, getRandomInt} from "../utils/numberUtil";
-import PolicyVisual from "../components/create/PolicyVisualForDesign.vue";
+import UserPart from './UserPart.vue'
+import AIPart from './AIPart.vue'
+import { percentageToNumber, checkSumObj, checkSumArray, getRandomInt} from "../../utils/numberUtil";
 
 var d3 = require("d3-interpolate");
 //import { log } from '@antv/g2plot/lib/utils';
@@ -712,17 +635,18 @@ export default {
       },
       visualSettingVisible: false,
       selectedPolicyIndex: 0,
+
+      drawer: false,
     };
   },
   components: {
     AIPart,
     UserPart,
-    PolicyVisual
   },
   watch:{
     msglist:{
       handler(){
-        if(msglist[msglist.length-1].user === false){
+        if(this.msglist[this.msglist.length-1].user === false){
           this.showLoading = false;
         }
       }
@@ -1113,38 +1037,71 @@ export default {
               this.LineChartData = [];
               this.PieChartData = [];
               //  Do something with data
-              console.log("reply data:", data);
               let replyContent = data.choices[0].message.content
+              console.log("reply data:", replyContent);
+
               // Using Regex to extract token's basic info from response, and turn it into Object
               let tokenBasicInfoRe = /"basic_info":\s*{\s*"symbol":\s*"(.*?)",\s*"initial_supply":\s*([0-9]+(.[0-9]+)?),\s*"inflation":\s*{\s*"base_rate":\s*([0-9]+(.[0-9]+)?),\s*"min_rate":\s*([0-9]+(.[0-9]+)?),\s*"max_rate":\s*([0-9]+(.[0-9]+)?)\s*\}\s*\}/;
               let tokenBasicInfo = replyContent.match(tokenBasicInfoRe);
-              if (tokenBasicInfo == null || tokenBasicInfo == undefined) throw "reply format error";
+              if (tokenBasicInfo == null || tokenBasicInfo == undefined || tokenBasicInfo.length < 1) throw "reply format error";
               else tokenBasicInfo = tokenBasicInfo[0];
-              tokenBasicInfo = JSON.parse("{" + tokenBasicInfo + "}").basic_info;
+              this.msglist.push(
+                {
+                //   content: 'My design for ' + tokenBasicInfo.symbol + ' is as follows: \n' + replyContent,
+                  content: tokenBasicInfo,
+                  user: false,
+                  drawChart: false,
+                  piedata: null,
+                  linedata: null,
+                }
+              );
+            //   tokenBasicInfo = JSON.parse("{" + tokenBasicInfo + "}").basic_info;
 
               // Using Regex to extract token's allocation info
               let tokenAllocationInfoRe = /"allocation"\s*:\s*{(?:\s*"[^"]+"\s*:\s*"[0-9]+%"\s*,?)*}/;
               let tokenAllocationInfo = replyContent.match(tokenAllocationInfoRe);
-              if (tokenAllocationInfo == null || tokenAllocationInfo == undefined) throw "reply format error";
+              if (tokenAllocationInfo == null || tokenAllocationInfo == undefined || tokenAllocationInfo.length < 1) throw "reply format error";
               else tokenAllocationInfo = tokenAllocationInfo[0];
-              tokenAllocationInfo = JSON.parse("{" + tokenAllocationInfo + "}").allocation;
-              if (!checkSumObj(tokenAllocationInfo)) {
-                throw ("mathmatics error");
-              }
+              this.msglist.push(
+                {
+                //   content: 'My design for ' + tokenBasicInfo.symbol + ' is as follows: \n' + replyContent,
+                  content: tokenAllocationInfo,
+                  user: false,
+                  drawChart: false,
+                  piedata: null,
+                  linedata: null,
+                }
+              );
+            //   tokenAllocationInfo = JSON.parse("{" + tokenAllocationInfo + "}").allocation;
+            //   if (!checkSumObj(tokenAllocationInfo)) {
+            //     throw ("mathmatics error");
+            //   }
 
               // Using Regex to extract token's vesting info
               let tokenVestingInfoRe = /"vesting":\s*\[(?:\s*\{(?:[^{}]|R)*\}\s*,?)+\s*\]/;
               let tokenVestingInfo = replyContent.match(tokenVestingInfoRe);
-              if (tokenVestingInfo == null || tokenVestingInfo == undefined) throw "reply format error";
+              if (tokenVestingInfo == null || tokenVestingInfo == undefined || tokenVestingInfo.length < 1) throw "reply format error";
               else tokenVestingInfo = tokenVestingInfo[0];
-              tokenVestingInfo = JSON.parse("{" + tokenVestingInfo + "}").vesting;
-              for (var i in tokenVestingInfo) {
-                if (!checkSumArray(tokenVestingInfo[i].percentage)) {
-                  throw ("mathmatics error");
+              this.msglist.push(
+                {
+                //   content: 'My design for ' + tokenBasicInfo.symbol + ' is as follows: \n' + replyContent,
+                  content: tokenVestingInfo,
+                  user: false,
+                  drawChart: false,
+                  piedata: null,
+                  linedata: null,
                 }
-              }
+              );
+            //   tokenVestingInfo = JSON.parse("{" + tokenVestingInfo + "}").vesting;
+            //   for (var i in tokenVestingInfo) {
+            //     if (!checkSumArray(tokenVestingInfo[i].percentage)) {
+            //       throw ("mathmatics error");
+            //     }
+            //   }
 
-              this.packDataForVisualization(tokenBasicInfo, tokenAllocationInfo, tokenVestingInfo);
+            //   this.packDataForVisualization(tokenBasicInfo, tokenAllocationInfo, tokenVestingInfo);
+
+
 
               // var jsonParesed = JSON.parse(tmpData);
               // if (!this.checkSum(jsonParesed.allocation)) {
@@ -1153,15 +1110,16 @@ export default {
               session[0]._calltimes = session[0]._calltimes - 1;
               let res = await this.axios.put('/api/session', {user: session[0]._user, calltimes: session[0]._calltimes});
               console.log("update sesiion result: "+res);
-              this.msglist.push(
-                {
-                  content: 'My design for ' + tokenBasicInfo.symbol + ' is as follows: ',
-                  user: false,
-                  drawChart: true,
-                  piedata: JSON.parse(JSON.stringify(this.PieChartData)),
-                  linedata: JSON.parse(JSON.stringify(this.LineChartData)),
-                }
-              );
+            //   this.msglist.push(
+            //     {
+            //     //   content: 'My design for ' + tokenBasicInfo.symbol + ' is as follows: \n' + replyContent,
+            //       content: replyContent,
+            //       user: false,
+            //       drawChart: false,
+            //       piedata: JSON.parse(JSON.stringify(this.PieChartData)),
+            //       linedata: JSON.parse(JSON.stringify(this.LineChartData)),
+            //     }
+            //   );
 
               this.showChat = true;
               this.showInput = true;
@@ -1655,14 +1613,14 @@ export default {
     //   "airdrop": "10%",
     //   "liquidity_mining": "30%"
     // };
-    // this.packDataForVisualization(tmpBasicInfo,tmpPieChartData, tmpLineChartData);
+    // // this.packDataForVisualization(tmpBasicInfo,tmpPieChartData, tmpLineChartData);
     // this.msglist.push(
     //   {
     //     content: 'My design for ' + tmpBasicInfo.symbol + ' is as follows: ',
     //     user: false,
-    //     drawChart: true,
-    //     piedata: JSON.parse(JSON.stringify(this.PieChartData)),
-    //     linedata: JSON.parse(JSON.stringify(this.LineChartData)),
+    //     drawChart: false,
+    //     piedata: null,
+    //     linedata: null,
     //   }
     // );
     // this.msglist.push(
@@ -1685,86 +1643,14 @@ export default {
     //     linedata: null,
     //   }
     // );
-    // console.log(checkSumObj(tmpPieChartData));
-    // for (var i in tmpLineChartData) {
-    //   console.log(checkSumArray(tmpLineChartData[i].percentage));
-    // }
   }
 }
 </script>
 
 <style scoped lang="scss">
-.container {
-  display: flex;
-  flex-direction: column;
-  overflow: scroll;
-  .tokenomics-content {
-    width: 1000px;
-    margin: auto;
-    height: auto;
-    .form-item {
-      padding: 5px;
-      margin-bottom: 0px;
-
-      span {
-        display:-moz-inline-box; 
-        display:inline-block; 
-        width:100px;
-      }
-
-      /deep/ .el-form-item__label {
-        color: black;
-        //font-weight: 600;
-      }
-
-      .stakeholder-edit-input {
-        margin-left: 5px;
-        width: 150px;
-      }
-
-      /deep/ .el-input--small .el-input__inner {
-        height: 28px;
-        line-height: 28px;
-      }
-
-      /deep/ .el-input__inner {
-        color:rgb(194, 194, 194)
-      }
-
-      
-      
-      .del-button {
-        margin-left: 15px;
-        height: 28px;
-        width: 35px;
-        color:rgb(194, 194, 194)
-      }
-
-      .add-button {
-        width: 60px;
-        color:rgb(194, 194, 194)
-      }
-      .submit-button {
-        margin-left: 15px;
-        width: 100px;
-        color:rgb(194, 194, 194)
-      }
-      .visual-button {
-
-        background-color: #fff !important;
-        border: #858585 !important;
-        color: #616060 !important;
-
-        box-shadow: 0 0 6px rgba(180, 180, 180, 0.8) !important;
-        border-radius: 20px;
-      }
-    }
-    
-  }
-}
 .tag-selection {
-  width: 1000px;
-  margin: auto;
+  width: 500px;
+  margin-left: 0px;
   height: auto;
 }
 .select-title {
@@ -1773,8 +1659,8 @@ export default {
 }
 .select-type {
   width: 500px;
-  height: 80px;
-  overflow: scroll;
+  height: auto;
+  overflow: visible;
   float: left;
   text-align: left;
   .type {
@@ -1816,8 +1702,8 @@ export default {
 }
 .select-token-kind {
   width: 500px;
-  height: 80px;
-  overflow: scroll;
+  height: auto;
+  overflow: visible;
   float: left;
   text-align: left;
   .tokenKind {
@@ -1857,97 +1743,12 @@ export default {
     color: #67C23A;
   }
 }
-.select-mode {
-  width: 500px;
-  height: 100px;
-  overflow: scroll;
-  float: left;
-  text-align: left;
-  .mode {
-    background-color: #FCF6EC;
-    color: #FCB846;
-  }
-  .modeSelect {
-    background-color: #FCB846;
-    color: #fff;
-  }
-  .tag-title {
-    margin: 10px 0px;
-    color: #FCB846;
-  }
-  .el-tag+.el-tag {
-    margin: 10px 10px;
-  }
-  /deep/ .el-tag {
-    border: 0px;
-    margin: 10px 10px;
-  }
-  .button-new-tag {
-    margin-left: 10px;
-    height: 32px;
-    line-height: 30px;
-    padding-top: 0;
-    padding-bottom: 0;
-  }
-  .input-new-tag {
-    width: 90px;
-    margin-left: 10px;
-    // vertical-align: bottom;
-  }
-  /deep/ .el-button {
-    border: 0px;
-    background: #FCF6EC;
-    color: #FCB846;
-  }
-}
-.select-participants {
-  width: 500px;
-  height: 100px;
-  overflow: scroll;
-  float: left;
-  text-align: left;
-  .participants {
-    background-color: #E0D1FB;
-    color: #9566E8;
-  }
-  .participantsSelect {
-    background-color: #9566E8;
-    color: #fff;
-  }
-  .tag-title {
-    margin: 10px 0px;
-    color: #9566E8;
-  }
-  .el-tag+.el-tag {
-    margin: 10px 10px;
-  }
-  /deep/ .el-tag {
-    border: 0px;
-    margin: 10px 10px;
-  }
-  .button-new-tag {
-    margin-left: 10px;
-    height: 32px;
-    line-height: 30px;
-    padding-top: 0;
-    padding-bottom: 0;
-  }
-  .input-new-tag {
-    width: 90px;
-    margin-left: 10px;
-    // vertical-align: bottom;
-  }
-  /deep/ .el-button {
-    border: 0px;
-    background: #E0D1FB;
-    color: #9566E8;
-  }
-}
 .token-tag{
-  width: 1000px;
-  height: 180px;
-  overflow: scroll;
+  width: 500px;
+  height: auto;
+  overflow: visible;
   margin:0 auto;
+  float: left;
   /deep/ .el-tabs--card>.el-tabs__header .el-tabs__item {
     border-left: none;
   }
@@ -1965,15 +1766,15 @@ export default {
   }
 }
 .general {
-  width: 1000px;
+  width: 500px;
   height: 100px;
   overflow: scroll;
 }
 .select-goal {
-  overflow: scroll;
+  overflow: visible;
   float: left;
   text-align: left;
-  height: 80px;
+  height: auto;
   .goal {
     background-color: #ECF5FF;
     color: #4777a7;
@@ -2011,10 +1812,10 @@ export default {
   }
 }
 .select-capabilities {
-  overflow: scroll;
+  overflow: visible;
   float: left;
   text-align: left;
-  height: 80px;
+  height: auto;
   .capabilities {
     background-color: #fef7eb;
     color: #b69357;
@@ -2052,10 +1853,10 @@ export default {
   }
 }
 .select-velocity {
-  overflow: scroll;
+  overflow: visible;
   float: left;
   text-align: left;
-  height: 80px;
+  height: auto;
   .velocity {
     background-color: #f2f9db;
     color: #a1b84d;
@@ -2093,10 +1894,10 @@ export default {
   }
 }
 .select-distributions-targets {
-  overflow: scroll;
+  overflow: visible;
   float: left;
   text-align: left;
-  height: 80px;
+  height: auto;
   .distributionsTargets {
     background-color: #fad9e8;
     color: #a84774;
@@ -2135,7 +1936,7 @@ export default {
 }
 .btn {
   margin: 10px auto;
-  width: 1000px;
+  width: 480px;
   font-weight: 600;
   color: white;
   border: 0;
@@ -2143,41 +1944,31 @@ export default {
 }
 .loading {
   margin: 20px auto;
-  width: 1000px;
+  width: 480px;
 }
 .btn:hover {
   color: #fff;
 }
 .communication {
-  height: 450px;
-  overflow: scroll;
+  height: auto;
+  overflow: visible;
+  float: left;
   .ai-answer {
-    width: 1000px;
-    height: 330px;
-    margin: auto;
+    width: 450px;
+    height: auto;
+    margin: 15px auto;
   }
   .user-msg {
-    width: 1000px;
-    height: 60px;
+    width: 450px;
+    height: auto;
     margin: 15px auto;
   }
 }
 .input {
   margin: 10px auto;
-  width: 1000px;
-  height: 40px;
+  width: 480px;
+  height: auto;
   bottom: 0;
-}
-.float-right{
-  position: fixed;
-  display: flex;
-  flex-direction: column;
-  right: 30px;
-  bottom: 30px;
-  z-index: 10;
-  padding: 3px 3px 0 3px;
-  border-radius: 3px;
-  border: 1px solid #ddd;
-  background: #fff;
+  float: left;
 }
 </style>
