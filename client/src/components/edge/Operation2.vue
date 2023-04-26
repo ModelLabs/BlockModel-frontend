@@ -114,28 +114,6 @@ export default {
     submitForm_Policy(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          //console.log("nodedata",this.nodeData);
-          // var map = new Map();
-          // for(let i=0;i<this.dynamicValidateForm_Policy.policyFunction.length;i++){
-          //   map.set(this.dynamicValidateForm_Policy.policyName[i],this.dynamicValidateForm_Policy.policyFunction[i])
-          // }
-
-          // if (this.graph.model.collection.cells.length) {
-          //     for(let i = 0;i<this.graph.model.collection.cells.length;i++){
-          //       if(this.graph.model.collection.cells[i].id === this.nodeId) {
-          //         this.graph.model.collection.cells[i].getData().edgeData = [];
-          //         for(let j=0;j<this.dynamicValidateForm_Policy.tokenName.length;j++){
-          //           this.graph.model.collection.cells[i].getData().edgeData.push({
-          //             tokenName:this.dynamicValidateForm_Policy.tokenName[j].value,
-          //             policyFunction:this.dynamicValidateForm_Policy.policyFunction[j].value,
-          //             policyName:this.dynamicValidateForm_Policy.policyName[j].value
-          //           });
-          //         }
-                  
-          //       }
-          //     }
-          // }
-
           this.nodeData.policy.tokenNames = this.dynamicValidateForm_Policy.tokenName;
           this.nodeData.policy.policyNames = this.dynamicValidateForm_Policy.policyName;
           this.nodeData.policy.policyFunctions = this.dynamicValidateForm_Policy.policyFunction;
@@ -166,7 +144,7 @@ export default {
         key: Date.now()
       });
       this.dynamicValidateForm_Policy.policyFunction.push({
-        value: {type: "percentage", datapoints: new Array()},
+        value: {type: "percentage", effect:"line", datapoints: new Array()},
         key: Date.now() + 1
       });
     },

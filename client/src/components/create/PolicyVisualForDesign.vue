@@ -1,7 +1,10 @@
 <template>
     <div>
-        <el-radio v-model="radio" label="amount">Amount</el-radio>
-        <el-radio v-model="radio" label="percentage">Percentage</el-radio>
+        <el-radio v-model="radio1" label="amount" class="left-radio">Amount</el-radio>
+        <el-radio v-model="radio1" label="percentage" class="left-radio">Percentage</el-radio>
+
+        <el-radio v-model="radio2" label="point" class="right-radio">Point</el-radio>
+        <el-radio v-model="radio2" label="line" class="right-radio">Line</el-radio>
 
         <canvas ref="chart"></canvas>
         <div class="create-point">
@@ -40,16 +43,6 @@ import dragdataPlugin from "chartjs-plugin-dragdata"
 import { Chart as ChartJS, registerables} from "chart.js"
 ChartJS.register(...registerables, dragdataPlugin)
 
-// let labels = new Map();
-// labels.set("MintNFT1", "Low-NFT");
-
-
-// datapoints.set("MintNFT1", Array.from({ length: 200 }, (elm, i) => ({
-//                     x: i,
-//                     y: 100
-//                 })));
-
-
 export default {
     //TODO 由于此 PolicyVisualForDesign 是为Tokenomics Design 部分适配的，和 PolicyVisual 逻辑相同，但是一些变量上稍有不同
     props: ["policyData"],
@@ -59,7 +52,8 @@ export default {
                 x: 0,
                 y: 0
             },
-            radio: "",
+            radio1: "",
+            radio2: "",
             y_scales: {},
             datapoints: new Array(),
         }
@@ -67,10 +61,13 @@ export default {
     mounted() {
         console.log("policy data:", this.policyData);
         this.datapoints = this.policyData.datapoints;
-        this.radio = this.policyData.type
+        this.radio1 = this.policyData.type;
+        this.radio2 = this.policyData.effect;
         console.log("init datapoints", this.datapoints);
-        console.log("init radio", this.radio);
-        if (this.radio == "amount") {
+        console.log("init type", this.radio1);
+        console.log("init effect", this.radio2);
+
+        if (this.radio1 == "amount") {
             this.y_scales = {
                 suggestedMin: 0,
                 suggestedMax: 10000,
@@ -117,7 +114,8 @@ export default {
 
         submit() {
             console.log("datapoints:", this.datapoints);
-            this.policyData.type = this.radio;
+            this.policyData.type = this.radio1;
+            this.policyData.effect = this.radio2;
             this.policyData.datapoints = this.datapoints;
         },
         clear() {
@@ -127,6 +125,8 @@ export default {
 
         renderCanvas() {
             let _this = this;
+            let showline = false;
+            if (this.radio2 == "line") showline = true;
             this.$nextTick(()=>{
                 let chartStatus = ChartJS.getChart(this.$refs.chart); // <canvas> id
                 if (chartStatus != undefined) {
@@ -144,7 +144,7 @@ export default {
                                 fill: false,
                                 pointRadius: 5,
                                 pointHitRadius: 10,
-                                showLine:true,
+                                showLine:showline,
                             }
                         ]
                     },
@@ -206,9 +206,9 @@ export default {
     },
 
     watch: {
-        radio: {
+        radio1: {
             handler() {
-                if (this.radio == "amount") {
+                if (this.radio1 == "amount") {
                     this.y_scales = {
                         suggestedMin: 0,
                         suggestedMax: 10000,
@@ -223,12 +223,23 @@ export default {
                 this.renderCanvas();
         
             }
+        },
+        radio2: {
+            handler() {
+                this.renderCanvas();
+            }
         }
     }
 }
 </script>
 
 <style lang="scss" scoped>
+.left-radio {
+    float: left;
+}
+.right-radio {
+    float: right;
+}
 .create-point {
   .input {
     // padding: 10px 15px;

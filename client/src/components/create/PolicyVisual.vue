@@ -1,7 +1,10 @@
 <template>
     <div>
-        <el-radio v-model="radio" label="amount">Amount</el-radio>
-        <el-radio v-model="radio" label="percentage">Percentage</el-radio>
+        <el-radio v-model="radio1" label="amount" class="left-radio">Amount</el-radio>
+        <el-radio v-model="radio1" label="percentage" class="left-radio">Percentage</el-radio>
+
+        <el-radio v-model="radio2" label="point" class="right-radio">Point</el-radio>
+        <el-radio v-model="radio2" label="line" class="right-radio">Line</el-radio>
 
         <canvas ref="chart"></canvas>
         <div class="create-point">
@@ -40,16 +43,6 @@ import dragdataPlugin from "chartjs-plugin-dragdata"
 import { Chart as ChartJS, registerables} from "chart.js"
 ChartJS.register(...registerables, dragdataPlugin)
 
-// let labels = new Map();
-// labels.set("MintNFT1", "Low-NFT");
-
-
-// datapoints.set("MintNFT1", Array.from({ length: 200 }, (elm, i) => ({
-//                     x: i,
-//                     y: 100
-//                 })));
-
-
 export default {
     //TODO  希望通过 props 传递过来的值, 直接就是 policyFunction.value, 和 tokenName.value, 
     // 是在父组件中通过 index 下标指定的，就不需要把整个 policyData 传过来了，也不需要传 index 了
@@ -60,7 +53,8 @@ export default {
                 x: 0,
                 y: 0
             },
-            radio: "",
+            radio1: "",
+            radio2: "",
             y_scales: {},
             datapoints: new Array(),
         }
@@ -69,10 +63,13 @@ export default {
         console.log("policy index:", this.policyIndex);
         console.log("policy data:", this.policyData);
         this.datapoints = this.policyData.policyFunction[this.policyIndex].value.datapoints;
-        this.radio = this.policyData.policyFunction[this.policyIndex].value.type
+        this.radio1 = this.policyData.policyFunction[this.policyIndex].value.type
+        this.radio2 = this.policyData.policyFunction[this.policyIndex].value.effect;
         console.log("init datapoints", this.datapoints);
-        console.log("init radio", this.radio);
-        if (this.radio == "amount") {
+        console.log("init radio", this.radio1);
+        console.log("init effect", this.radio2);
+
+        if (this.radio1 == "amount") {
             this.y_scales = {
                 suggestedMin: 0,
                 suggestedMax: 10000,
@@ -119,7 +116,8 @@ export default {
 
         submit() {
             console.log("datapoints:", this.datapoints);
-            this.policyData.policyFunction[this.policyIndex].value.type = this.radio;
+            this.policyData.policyFunction[this.policyIndex].value.type = this.radio1;
+            this.policyData.policyFunction[this.policyIndex].value.effect = this.radio2;
             this.policyData.policyFunction[this.policyIndex].value.datapoints = this.datapoints;
         },
         clear() {
@@ -129,6 +127,8 @@ export default {
 
         renderCanvas() {
             let _this = this;
+            let showline = false;
+            if (this.radio2 == "line") showline = true;
             console.log("label:", this.policyData.tokenName[this.policyIndex].value);
             this.$nextTick(()=>{
                 let chartStatus = ChartJS.getChart(this.$refs.chart); // <canvas> id
@@ -147,7 +147,7 @@ export default {
                                 fill: false,
                                 pointRadius: 5,
                                 pointHitRadius: 10,
-                                showLine:true,
+                                showLine:showline,
                             }
                         ]
                     },
@@ -209,9 +209,9 @@ export default {
     },
 
     watch: {
-        radio: {
+        radio1: {
             handler() {
-                if (this.radio == "amount") {
+                if (this.radio1 == "amount") {
                     this.y_scales = {
                         suggestedMin: 0,
                         suggestedMax: 10000,
@@ -226,12 +226,23 @@ export default {
                 this.renderCanvas();
         
             }
+        },
+        radio2: {
+            handler() {
+                this.renderCanvas();
+            }
         }
     }
 }
 </script>
 
 <style lang="scss" scoped>
+.left-radio {
+    float: left;
+}
+.right-radio {
+    float: right;
+}
 .create-point {
   .input {
     // padding: 10px 15px;

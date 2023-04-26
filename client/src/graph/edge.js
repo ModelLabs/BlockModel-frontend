@@ -10,6 +10,7 @@ export class Edge {
         this.policyToken = new Map();
         this.policyPoints = new Map();
         this.policyType = new Map();
+        this.policyEffect = new Map();
         this.policyPiecewiseFunctions = new Map();
         this.conditions = new Array();
         this.preprocessPolicy(edgeData.policy);
@@ -35,23 +36,29 @@ export class Edge {
         for (let i = 0; i < rawPolicy.tokenNames.length; i++) {
             this.policyToken.set(rawPolicy.policyNames[i].value, rawPolicy.tokenNames[i].value);
             this.policyType.set(rawPolicy.policyNames[i].value, rawPolicy.policyFunctions[i].value.type);
+            this.policyEffect.set(rawPolicy.policyNames[i].value, rawPolicy.policyFunctions[i].value.effect);
 
             let points = rawPolicy.policyFunctions[i].value.datapoints;
-            let piecewiseFunctions = new Array();
-            
             // 把用户设置的点位按照 x 轴从小到大排列；
             points.sort(function(a,b) {return Number(a.x) - Number(b.x)});
-            this.policyPoints.set(rawPolicy.policyNames[i].value, points);
-            // // 排列后的点位，可以组成分段函数的表达式，目前此处用四元组表达分段函数：[x0, x1, y0, y1] (x0, y0) 和 (x1, y1) 是每一段的两个端点
-            for (let j = 0; j < points.length; j++) {
-                if (j == 0) {
-                    continue;
-                } else {
-                    piecewiseFunctions.push([Number(points[j - 1].x), Number(points[j].x), Number(points[j - 1].y), Number(points[j].y)]);
-                }
+            let pointsMap = new Map();
+            for (let i = 0; i < points.length; i++) {
+                pointsMap.set(Number(points[i].x), Number(points[i].y));
             }
-            this.policyPiecewiseFunctions.set(rawPolicy.policyNames[i].value, piecewiseFunctions);
-            
+            this.policyPoints.set(rawPolicy.policyNames[i].value, pointsMap);
+
+            if (rawPolicy.policyFunctions[i].value.effect == "line") {
+                let piecewiseFunctions = new Array();
+                // // 排列后的点位，可以组成分段函数的表达式，目前此处用四元组表达分段函数：[x0, x1, y0, y1], (x0, y0) 和 (x1, y1) 是每一段的两个端点
+                for (let j = 0; j < points.length; j++) {
+                    if (j == 0) {
+                        continue;
+                    } else {
+                        piecewiseFunctions.push([Number(points[j - 1].x), Number(points[j].x), Number(points[j - 1].y), Number(points[j].y)]);
+                    }
+                }
+                this.policyPiecewiseFunctions.set(rawPolicy.policyNames[i].value, piecewiseFunctions);
+            }
         }
     }
 
@@ -88,18 +95,31 @@ export class Edge {
                 console.warn("Operation:", this.label, " is failed since source node has no enough token to transfer");
                 continue;
             }
-            // 计算当前处于分段函数policy的哪个分段上
-            let piecewiseIndex = this.locatePiecewise(curDay, policy);
-            // 不在分段函数范围内时，不需要计算后续逻辑
-            if (piecewiseIndex == -1) {
-                console.log("transfer Amount: 0");
-                continue;
+            
+            let transferAmount = 0;
+            if (this.policyEffect.get(policy) == "line") {
+                // 计算当前处于分段函数policy的哪个分段上
+                let piecewiseIndex = this.locatePiecewise(curDay, policy);
+                // 不在分段函数范围内时，不需要计算后续逻辑
+                if (piecewiseIndex == -1) {
+                    console.log("transfer Amount: 0");
+                    continue;
+                }
+                // 计算当前天，在当前所处的分段上的具体值是多少
+                transferAmount = Math.round((curDay - this.policyPiecewiseFunctions.get(policy)[piecewiseIndex][0]) / (this.policyPiecewiseFunctions.get(policy)[piecewiseIndex][1] - this.policyPiecewiseFunctions.get(policy)[piecewiseIndex][0]) * (this.policyPiecewiseFunctions.get(policy)[piecewiseIndex][3] - this.policyPiecewiseFunctions.get(policy)[piecewiseIndex][2]) + this.policyPiecewiseFunctions.get(policy)[piecewiseIndex][2]);
+            }
+            else {
+                if (this.policyPoints.get(policy).has(curDay)) {
+                    transferAmount = this.policyPoints.get(policy).get(curDay);
+                }
             }
             
-            // 计算当前天，在当前所处的分段上的具体值是多少
-            let transferAmount = Math.round((curDay - this.policyPiecewiseFunctions.get(policy)[piecewiseIndex][0]) / (this.policyPiecewiseFunctions.get(policy)[piecewiseIndex][1] - this.policyPiecewiseFunctions.get(policy)[piecewiseIndex][0]) * (this.policyPiecewiseFunctions.get(policy)[piecewiseIndex][3] - this.policyPiecewiseFunctions.get(policy)[piecewiseIndex][2]) + this.policyPiecewiseFunctions.get(policy)[piecewiseIndex][2]);
+            if (transferAmount <= 0) {
+                console.log("transfer Amount: 0");
+                continue;
+            } 
             // TODO transferAmount 取决于绝对值or比例，如果用户设定的是比例的话，需要额外计算一下
-            if (this.policyType.get(policy) == "percentage") {
+            if ( this.policyType.get(policy) == "percentage") {
                 transferAmount = Math.round(transferAmount * this.src.tokenData.get(token) / 100);
             }
 
@@ -113,10 +133,9 @@ export class Edge {
                 this.curDayTransferAmount = transferAmount;
             }
             this.indexDB.addData("edgeHistoryData",{id:this.id,day:this.curDay,token:token,transferAmount:this.curDayTransferAmount});
+        
         }
     }
-
-    
 
     update() {
         // edge 暂时没有设计需要保存的历史数据

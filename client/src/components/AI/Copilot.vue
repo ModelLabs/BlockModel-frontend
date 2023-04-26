@@ -1137,53 +1137,7 @@ export default {
       }
       this.showLoading = false;
     },
-    packDataForVisualization(tokenBasicInfo, tokenAllocationInfo, tokenVestingInfo) {
-      // initial_suppply 有可能是字符串或者科学记数法，先用 Number()进行规范
-      tokenBasicInfo.initial_supply = Number(tokenBasicInfo.initial_supply);
-      this.PieChartData = [];
-      for (var i in tokenAllocationInfo) {
-        this.PieChartData.push({type: i, value: tokenBasicInfo.initial_supply * percentageToNumber(tokenAllocationInfo[i])});
-      }
-      // 根据 vesting schedule 进行计算和插值
-      // let maxDay = 2000;
-      for (let i = 0; i < tokenVestingInfo.length; i++) {
-        let stakeholder = tokenVestingInfo[i].target;
-        let stakeholderSupply = tokenBasicInfo.initial_supply * percentageToNumber(tokenAllocationInfo[stakeholder]);
-        let accumulatedReleaseAmount = 0;
-        let piecewiseDayArray = new Array();
-        let piecewiseAmountArray = new Array();
-        let tmpArray = new Array();
-
-        // 记录 vesting schedule 中分段的节点
-        piecewiseDayArray.push(0);
-        piecewiseAmountArray.push(0);
-        for (let j = 0; j < tokenVestingInfo[i].percentage.length; j++) {
-          let day = Number(tokenVestingInfo[i].cliff) + j * Number(tokenVestingInfo[i].frequency);
-          let amount = accumulatedReleaseAmount + stakeholderSupply * percentageToNumber(tokenVestingInfo[i].percentage[j]);
-          // tmpArray.push({"stakeholder": stakeholder, "day": day, "releaseAmount": amount});
-          accumulatedReleaseAmount += stakeholderSupply  * percentageToNumber(tokenVestingInfo[i].percentage[j]);
-          piecewiseDayArray.push(day);
-          piecewiseAmountArray.push(amount);
-        }
-        piecewiseDayArray.push(2000);
-        piecewiseAmountArray.push(piecewiseAmountArray[piecewiseAmountArray.length - 1]);
-
-        // 在每个分段中进行线性插值
-        for (let j = 1; j < piecewiseAmountArray.length; j++) {
-          let piecewiseDayInterpolater = d3.piecewise(d3.interpolateRound, [piecewiseAmountArray[j - 1],piecewiseAmountArray[j]]);
-          let piecewiseAmount = d3.quantize(piecewiseDayInterpolater, piecewiseDayArray[j] - piecewiseDayArray[j - 1]);
-          tmpArray = tmpArray.concat(piecewiseAmount);
-        }
-        for (let j = 0; j < tmpArray.length; j++) {
-          this.LineChartData.push({"stakeholder": stakeholder, "day": j, "releaseAmount": tmpArray[j]});
-        }
-        
-      }
-      this.LineChartData.sort(this.objectArrayCompare("day"));
-      
-      // console.log("line:",this.LineChartData);
-      // console.log("pie:", this.PieChartData);
-    },
+    
     // 对 Object 数组进行排序时的比较函数
     // 参数 p: 具体要对 Object 哪个字段进行比较
     objectArrayCompare(p){ 
