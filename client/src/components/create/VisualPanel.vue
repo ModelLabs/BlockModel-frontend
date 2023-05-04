@@ -2,7 +2,7 @@
   <el-collapse-transition>
     <div class="visual-panel">
       <div  v-if="simulating" class="generating">
-        <h2>The calculation data of the current model is being generated, please wait.</h2>
+        <h2>The data of the current model is being processed, please wait.</h2>
       </div>
       
       <!-- <span class="help"
@@ -1501,7 +1501,6 @@ export default {
         this.selectedData = true;
       }
 
-      console.log("genesisLinePieData",JSON.stringify(this.genesisLinePieData))
     },
     /**
      * 这里根据用户选的 ID 创建可选数据

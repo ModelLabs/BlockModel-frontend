@@ -4,6 +4,7 @@ import Router from 'vue-router'
 import Explore from "../pages/Explore"
 import Create from "../pages/Create"
 import Copilot from "../pages/Copilot"
+import Resources from "../pages/Resources"
 import Profile from "../pages/Profile"
 import Details from "../pages/Details"
 import Sell from "../pages/Sell"
@@ -27,6 +28,10 @@ export default new Router({
         {
             path: '/copilot',
             component: Copilot
+        },
+        {
+            path: '/resources',
+            component: Resources
         },
         {
             path: '/profile',
