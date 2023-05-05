@@ -46,15 +46,17 @@
 
         <el-form-item class="form-item">
           <el-button @click="addDomain" class="add-button" size="mini">+</el-button>
-          <el-button 
-            @click="submitForm('dynamicValidateForm')" 
-            class="submit-button" 
-            size="mini">Done</el-button>
+
         </el-form-item>
 
       </el-form>   
       <el-button @click="drawer = true" type="primary" style="margin-left: 16px;" class="drawer-button">
         GPT Helper
+      </el-button>
+      <el-button 
+        @click="submitForm()" 
+        class="submit-button" 
+        size="mini">Done
       </el-button>
     </div>
    
@@ -64,7 +66,7 @@
       :with-header="true"
       :size="500"
       class="drawer-content">
-      <InnerDesign/>
+      <Copilot/>
     </el-drawer>
 
     <el-dialog
@@ -73,7 +75,8 @@
         :modal-append-to-body='true'
         :append-to-body='true'
         >
-        <PieChart :piedata="pieData"/>
+        <PieChart :piedata="pieChartData" />
+        <AreaChart :areaData="lineChartData" />
     </el-dialog>
 
   </div>
@@ -83,8 +86,9 @@ import { mapState, mapMutations, mapActions } from "vuex";
 
 import { percentageToNumber, checkSumObj, checkSumArray, getRandomInt} from "../utils/numberUtil";
 import PolicyVisual from "../components/create/PolicyVisualForDesign.vue";
-import InnerDesign from "../components/AI/Copilot.vue";
+import Copilot from "../components/AI/Copilot.vue";
 import PieChart from "../components/AI/PieChart.vue";
+import AreaChart from "../components/AI/AreaChart.vue";
 
 var d3 = require("d3-interpolate");
 
@@ -107,36 +111,35 @@ export default {
 
       designResultVisible: false,
 
-      pieData: null,
+      pieChartData: [],
+      lineChartData: [],
 
       tokenBasicInfo: {},
       tokenAllocationInfo: {},
-      tokenVestingInfo: null,
+      tokenVestingInfo: {},
     };
   },
   components: {
     PolicyVisual,
-    InnerDesign,
+    Copilot,
     PieChart,
+    AreaChart,
   },
   methods: {
-    submitForm(formName) {
-      this.$refs[formName].validate((valid) => {
-        if (valid) {
-            console.log("yes");
-            this.designResultVisible = true;
-            console.log("form:", this.dynamicValidateForm);
-            this.tokenBasicInfo.initial_supply = Number(this.tokenSupply);
-            this.tokenBasicInfo.symbol = this.tokenSymbol;
-            console.log("token basic info:", this.tokenBasicInfo);
+    submitForm() {
+      this.designResultVisible = true;
+      this.tokenBasicInfo.initial_supply = Number(this.tokenSupply);
+      this.tokenBasicInfo.symbol = this.tokenSymbol;
 
-            for (let i = 0; i < this.dynamicValidateForm.stakeholders.length; i++) {
-              this.tokenAllocationInfo[this.dynamicValidateForm.stakeholders[i].name] = this.dynamicValidateForm.stakeholders[i].allocation;
-            }
-            console.log("token allocation info:", this.tokenAllocationInfo);
-        } 
-        else return false;
-      })
+      for (let i = 0; i < this.dynamicValidateForm.stakeholders.length; i++) {
+        this.tokenAllocationInfo[this.dynamicValidateForm.stakeholders[i].name] = this.dynamicValidateForm.stakeholders[i].allocation;
+        this.tokenVestingInfo[this.dynamicValidateForm.stakeholders[i].name] = this.dynamicValidateForm.stakeholders[i].vesting_policy;
+      }
+
+      console.log("token basic info:", this.tokenBasicInfo);
+      console.log("token allocation info:", this.tokenAllocationInfo);
+      console.log("token vesting policy:", this.tokenVestingInfo);
+      this.packDataForVisualization(this.tokenBasicInfo, this.tokenAllocationInfo, this.tokenVestingInfo);
     },
     removeDomain(index) {
       if (index !== -1) {
@@ -166,49 +169,71 @@ export default {
     packDataForVisualization(tokenBasicInfo, tokenAllocationInfo, tokenVestingInfo) {
       // initial_suppply 有可能是字符串或者科学记数法，先用 Number()进行规范
       tokenBasicInfo.initial_supply = Number(tokenBasicInfo.initial_supply);
-      this.PieChartData = [];
-      for (var i in tokenAllocationInfo) {
-        this.PieChartData.push({type: i, value: tokenBasicInfo.initial_supply * percentageToNumber(tokenAllocationInfo[i])});
+      this.pieChartData = [];
+      this.lineChartData = [];
+
+      for (let i in tokenAllocationInfo) {
+        this.pieChartData.push({type: i, value: tokenBasicInfo.initial_supply * percentageToNumber(tokenAllocationInfo[i])});
       }
       // 根据 vesting schedule 进行计算和插值
       // let maxDay = 2000;
-      for (let i = 0; i < tokenVestingInfo.length; i++) {
-        let stakeholder = tokenVestingInfo[i].target;
+      for (let stakeholder in tokenVestingInfo) {
         let stakeholderSupply = tokenBasicInfo.initial_supply * percentageToNumber(tokenAllocationInfo[stakeholder]);
         let accumulatedReleaseAmount = 0;
         let piecewiseDayArray = new Array();
         let piecewiseAmountArray = new Array();
         let tmpArray = new Array();
+        console.log("stakeholder:", stakeholder, " - ", stakeholderSupply);
 
-        // 记录 vesting schedule 中分段的节点
-        piecewiseDayArray.push(0);
-        piecewiseAmountArray.push(0);
-        for (let j = 0; j < tokenVestingInfo[i].percentage.length; j++) {
-          let day = Number(tokenVestingInfo[i].cliff) + j * Number(tokenVestingInfo[i].frequency);
-          let amount = accumulatedReleaseAmount + stakeholderSupply * percentageToNumber(tokenVestingInfo[i].percentage[j]);
-          // tmpArray.push({"stakeholder": stakeholder, "day": day, "releaseAmount": amount});
-          accumulatedReleaseAmount += stakeholderSupply  * percentageToNumber(tokenVestingInfo[i].percentage[j]);
-          piecewiseDayArray.push(day);
-          piecewiseAmountArray.push(amount);
-        }
-        piecewiseDayArray.push(2000);
-        piecewiseAmountArray.push(piecewiseAmountArray[piecewiseAmountArray.length - 1]);
+        if (tokenVestingInfo[stakeholder].effect == "point") {
+          // 记录 vesting schedule 中分段的节点
+          piecewiseDayArray.push(0);
+          piecewiseAmountArray.push(0);
+          for (let j = 0; j < tokenVestingInfo[stakeholder].datapoints.length; j++) {
+            // let day = Number(tokenVestingInfo[i].cliff) + j * Number(tokenVestingInfo[i].frequency);
+            let day = Number(tokenVestingInfo[stakeholder].datapoints[j].x);
+            let amount = accumulatedReleaseAmount + stakeholderSupply * Number(tokenVestingInfo[stakeholder].datapoints[j].y) / 100;
+            // tmpArray.push({"stakeholder": stakeholder, "day": day, "releaseAmount": amount});
+            accumulatedReleaseAmount += stakeholderSupply  * Number(tokenVestingInfo[stakeholder].datapoints[j].y) / 100;
+            piecewiseDayArray.push(day);
+            piecewiseAmountArray.push(amount);
+          }
+          piecewiseDayArray.push(1000);
+          piecewiseAmountArray.push(piecewiseAmountArray[piecewiseAmountArray.length - 1]);
+          console.log("day array:", piecewiseDayArray);
+          console.log("amount array:", piecewiseAmountArray);
 
-        // 在每个分段中进行线性插值
-        for (let j = 1; j < piecewiseAmountArray.length; j++) {
-          let piecewiseDayInterpolater = d3.piecewise(d3.interpolateRound, [piecewiseAmountArray[j - 1],piecewiseAmountArray[j]]);
-          let piecewiseAmount = d3.quantize(piecewiseDayInterpolater, piecewiseDayArray[j] - piecewiseDayArray[j - 1]);
-          tmpArray = tmpArray.concat(piecewiseAmount);
+          // 在每个分段中进行线性插值
+          for (let j = 1; j < piecewiseAmountArray.length; j++) {
+            let piecewiseDayInterpolater = d3.piecewise(d3.interpolateRound, [piecewiseAmountArray[j - 1], piecewiseAmountArray[j]]);
+            let piecewiseAmount = null;
+            if (piecewiseDayArray[j] - piecewiseDayArray[j - 1] == 1) tmpArray = tmpArray.concat([piecewiseAmountArray[j]]);
+            else {
+              piecewiseAmount = d3.quantize(piecewiseDayInterpolater, piecewiseDayArray[j] - piecewiseDayArray[j - 1]);
+              tmpArray = tmpArray.concat(piecewiseAmount);
+            }
+          }
+          console.log("tmpArray:", tmpArray);
+          for (let j = 0; j < tmpArray.length; j++) {
+            this.lineChartData.push({"stakeholder": stakeholder, "day": j, "releaseAmount": tmpArray[j]});
+          }
+        } else {
+          
         }
-        for (let j = 0; j < tmpArray.length; j++) {
-          this.LineChartData.push({"stakeholder": stakeholder, "day": j, "releaseAmount": tmpArray[j]});
-        }
-        
       }
-      this.LineChartData.sort(this.objectArrayCompare("day"));
-      
+      this.lineChartData.sort(this.objectArrayCompare("day"));
       // console.log("line:",this.LineChartData);
       // console.log("pie:", this.PieChartData);
+    },
+
+    // 对 Object 数组进行排序时的比较函数
+    // 参数 p: 具体要对 Object 哪个字段进行比较
+    objectArrayCompare(p){ 
+      return function(m,n){
+          var a = m[p];
+          var b = n[p];
+          return a - b; //升序
+      }
     },
   },
 
@@ -227,44 +252,23 @@ export default {
     //     "max_rate": 0.1
     //   }
     // };
-    // let tmpLineChartData = [
-    //   {
-    //     "target": "team",
-    //     "cliff": 365,
-    //     "frequency": 90,
-    //     "percentage": ["25%", "25%", "25%", "20%"]
-    //   },
-    //   {
-    //     "target": "advisor",
-    //     "cliff": 1825,
-    //     "frequency": 365,
-    //     "percentage": ["100%"]
-    //   },
-    //   {
-    //     "target": "foundation",
-    //     "cliff": 0,
-    //     "frequency": 180,
-    //     "percentage": ["25%", "25%", "25%", "25%"]
-    //   },
-    //   {
-    //     "target": "investor",
-    //     "cliff": 0,
-    //     "frequency": 180,
-    //     "percentage": ["25%", "25%", "25%", "25%"]
-    //   },
-    //   {
-    //     "target": "airdrop",
-    //     "cliff": 0,
-    //     "frequency": 0,
-    //     "percentage": ["100%"]
-    //   },
-    //   {
-    //     "target": "liquidity_mining",
-    //     "cliff": 30,
-    //     "frequency": 180,
-    //     "percentage": ["25%", "25%", "25%", "20%"]
+    // let tmpLineChartData = {
+    //   "team": {
+    //     type: "percentage",
+    //     effect: "point",
+    //     datapoints: [
+    //       {
+    //         x: "1",
+    //         y: "50"
+    //       },
+    //       {
+    //         x:"100",
+    //         y:"50",
+    //       }
+    //     ]
+
     //   }
-    // ];
+    // };
     // let tmpPieChartData = {
     //   "team": "15%",
     //   "advisor": "5%",
@@ -273,6 +277,7 @@ export default {
     //   "airdrop": "10%",
     //   "liquidity_mining": "30%"
     // };
+    // this.designResultVisible = true;
     // this.packDataForVisualization(tmpBasicInfo,tmpPieChartData, tmpLineChartData);
     // this.msglist.push(
     //   {

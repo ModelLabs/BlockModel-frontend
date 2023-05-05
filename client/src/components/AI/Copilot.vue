@@ -1138,16 +1138,6 @@ export default {
       this.showLoading = false;
     },
     
-    // 对 Object 数组进行排序时的比较函数
-    // 参数 p: 具体要对 Object 哪个字段进行比较
-    objectArrayCompare(p){ 
-      return function(m,n){
-          var a = m[p];
-          var b = n[p];
-          return a - b; //升序
-      }
-    },
-    
     // query availabel apikey from database
     retrieveAPIkey() {
       this.axios.get('/api/apikey').then(
@@ -1507,7 +1497,6 @@ export default {
   },
 
   computed: {
-    ...mapState(["user", "userEmail"]),
   },
 
   mounted(){
@@ -1567,14 +1556,14 @@ export default {
     //   "airdrop": "10%",
     //   "liquidity_mining": "30%"
     // };
-    // // this.packDataForVisualization(tmpBasicInfo,tmpPieChartData, tmpLineChartData);
+    // this.packDataForVisualization(tmpBasicInfo,tmpPieChartData, tmpLineChartData);
     // this.msglist.push(
     //   {
     //     content: 'My design for ' + tmpBasicInfo.symbol + ' is as follows: ',
     //     user: false,
-    //     drawChart: false,
-    //     piedata: null,
-    //     linedata: null,
+    //     drawChart: true,
+    //     piedata: JSON.parse(JSON.stringify(this.PieChartData)),
+    //     linedata: JSON.parse(JSON.stringify(this.LineChartData)),
     //   }
     // );
     // this.msglist.push(
