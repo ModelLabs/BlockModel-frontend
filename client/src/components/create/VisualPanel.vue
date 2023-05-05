@@ -66,8 +66,8 @@
               >
                 <el-table-column type="selection" width="45"> </el-table-column>            
                 <el-table-column prop="index" label="ID" width="80"></el-table-column>
-                <el-table-column label="" width="110">
-                  <!-- <template slot-scope="scope"> -->
+                <el-table-column label="Operation" width="110">
+                  <template slot-scope="scope">
                     <!-- 查看数据相关的规则列表 -->
                     <!-- <el-tooltip
                       class="tooltip"
@@ -107,7 +107,7 @@
                     </el-tooltip> -->
 
                     <!-- 删除数据 -->
-                    <!-- <el-tooltip
+                    <el-tooltip
                       class="tooltip"
                       content="Delete Data"
                       placement="bottom"
@@ -123,8 +123,8 @@
                           style="font-size: 18px; color: gray"
                         ></i>
                       </el-button>
-                    </el-tooltip> -->
-                  <!-- </template> -->
+                    </el-tooltip>
+                  </template>
                 </el-table-column>
               </el-table>
             <!-- </div> -->
@@ -292,7 +292,9 @@ export default {
       "SET_TMP_MARKER_ARRAY",
       "MODIFY_GRAPH",
       "CLEAR_GRAPH",
-      "SET_MARKER_ARRAY"
+      "SET_MARKER_ARRAY",
+      "ADD_INDEX",
+      "CLEAR_INDEX_LIST",
     ]),
     handleNavMenuSelect(key, keyPath) {
       console.log(key, keyPath);
@@ -375,14 +377,44 @@ export default {
     },
 
     /**
+       更新 indexList 中的测算 Id
+     */
+    async prepareIdList(){
+      let tmp = await this.$indexedDB.getAll("historySimulationData");
+      if(tmp.srcElement.result.length) {
+        this.CLEAR_INDEX_LIST();
+        for(let i=0;i<tmp.srcElement.result.length;i++){
+          this.ADD_INDEX(tmp.srcElement.result[i].get("simulateId"));
+        }
+      }
+    },
+
+    /**
+      * 从可视化面板删除数据 Version 2
+    */
+    async deleteFromIndexDB(ind) {
+      let tmp = await this.$indexedDB.getAll("historySimulationData");
+      let index = this.indexList[ind].index
+
+      for(let i=0;i<tmp.srcElement.result.length;i++){
+        
+        if(tmp.srcElement.result[i].get("simulateId") === index){
+          await this.$indexedDB.deleteDB("historySimulationData",tmp.srcElement.result[i].KeyId);
+          await this.$indexedDB.deleteDB("historyModelData",tmp.srcElement.result[i].KeyId);
+          await this.prepareIdList();
+        }
+      }
+    },
+
+    /**
       * 从可视化面板删除数据
       * KEY：0 Data：History Simulation Data
       * KEY：1 Data：History Simulation Data Marker
       * KEY：2 Data：History Properties
       * KEY：3 Data：History Graph
       * KEY：4 Data：Vest Data
-      */
-    async deleteFromIndexDB(index) {
+    */
+    async deleteFromIndexDBOld(index) {
       // 取存入的所有历史测算数据
       let tmpData = await this.getDataFromIndexDB("historyData","id",0);
       let tmpMarker = await this.getDataFromIndexDB("historyData","id",1);

@@ -290,7 +290,8 @@ export default {
             tmpObj.set("edge",edge);
 
             let tmp = await this.$indexedDB.getAll("historySimulationData");
-            if (tmp.srcElement.result.length) id = tmp.srcElement.result.length;
+            //if (tmp.srcElement.result.length) id = tmp.srcElement.result.length;
+            if (tmp.srcElement.result.length) id = tmp.srcElement.result[tmp.srcElement.result.length-1].get("simulateId") + 1;
 
             obj.set("simulateId",id);
             obj.set("data",tmpObj);
@@ -308,8 +309,9 @@ export default {
 
             let obj = new Map();
             let id = 0;
-            if (tmp.srcElement.result.length) id = tmp.srcElement.result.length;
-
+            //if (tmp.srcElement.result.length) id = tmp.srcElement.result.length;
+            if (tmp.srcElement.result.length) id = tmp.srcElement.result[tmp.srcElement.result.length-1].get("simulateId") + 1;
+            
             for(let i=0;i<tmpModelData.srcElement.result.length;i++){
                 obj.set("simulateId",id);
                 obj.set("graph",tmpModelData.srcElement.result[i].graph);
