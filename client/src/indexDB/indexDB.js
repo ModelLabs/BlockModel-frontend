@@ -52,6 +52,7 @@ function openDB(dbName, storeName, version = 1) {
                         // 这是主键
                         // 主键使用的是数据表里的id值
                         // keyPath: "uid",
+                        keyPath: "KeyId",
                         // 实现自增
                         autoIncrement: true
     
