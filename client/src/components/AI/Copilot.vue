@@ -1497,6 +1497,7 @@ export default {
   },
 
   computed: {
+    ...mapState(["user", "userEmail"]),
   },
 
   mounted(){
