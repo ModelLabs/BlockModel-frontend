@@ -180,45 +180,64 @@ export default {
       for (let stakeholder in tokenVestingInfo) {
         let stakeholderSupply = tokenBasicInfo.initial_supply * percentageToNumber(tokenAllocationInfo[stakeholder]);
         let accumulatedReleaseAmount = 0;
-        let piecewiseDayArray = new Array();
-        let piecewiseAmountArray = new Array();
-        let tmpArray = new Array();
+        let finalDay = 1001;
         console.log("stakeholder:", stakeholder, " - ", stakeholderSupply);
 
         if (tokenVestingInfo[stakeholder].effect == "point") {
-          // 记录 vesting schedule 中分段的节点
-          piecewiseDayArray.push(0);
-          piecewiseAmountArray.push(0);
+          let lastDay = 0;
+          let lastAmount = 0;
           for (let j = 0; j < tokenVestingInfo[stakeholder].datapoints.length; j++) {
-            // let day = Number(tokenVestingInfo[i].cliff) + j * Number(tokenVestingInfo[i].frequency);
-            let day = Number(tokenVestingInfo[stakeholder].datapoints[j].x);
-            let amount = accumulatedReleaseAmount + stakeholderSupply * Number(tokenVestingInfo[stakeholder].datapoints[j].y) / 100;
-            // tmpArray.push({"stakeholder": stakeholder, "day": day, "releaseAmount": amount});
+            let curDay = Number(tokenVestingInfo[stakeholder].datapoints[j].x);
+            let curAmount = accumulatedReleaseAmount + stakeholderSupply * Number(tokenVestingInfo[stakeholder].datapoints[j].y) / 100;
             accumulatedReleaseAmount += stakeholderSupply  * Number(tokenVestingInfo[stakeholder].datapoints[j].y) / 100;
-            piecewiseDayArray.push(day);
-            piecewiseAmountArray.push(amount);
-          }
-          piecewiseDayArray.push(1000);
-          piecewiseAmountArray.push(piecewiseAmountArray[piecewiseAmountArray.length - 1]);
-          console.log("day array:", piecewiseDayArray);
-          console.log("amount array:", piecewiseAmountArray);
-
-          // 在每个分段中进行线性插值
-          for (let j = 1; j < piecewiseAmountArray.length; j++) {
-            let piecewiseDayInterpolater = d3.piecewise(d3.interpolateRound, [piecewiseAmountArray[j - 1], piecewiseAmountArray[j]]);
-            let piecewiseAmount = null;
-            if (piecewiseDayArray[j] - piecewiseDayArray[j - 1] == 1) tmpArray = tmpArray.concat([piecewiseAmountArray[j]]);
-            else {
-              piecewiseAmount = d3.quantize(piecewiseDayInterpolater, piecewiseDayArray[j] - piecewiseDayArray[j - 1]);
-              tmpArray = tmpArray.concat(piecewiseAmount);
+            for (let day = lastDay; day < curDay; day++) {
+              this.lineChartData.push({"stakeholder": stakeholder, "day": day, "releaseAmount": lastAmount});
             }
+            lastDay = curDay;
+            lastAmount = curAmount;
           }
-          console.log("tmpArray:", tmpArray);
-          for (let j = 0; j < tmpArray.length; j++) {
-            this.lineChartData.push({"stakeholder": stakeholder, "day": j, "releaseAmount": tmpArray[j]});
+          for (let day = lastDay; day < finalDay; day++) {
+            this.lineChartData.push({"stakeholder": stakeholder, "day": day, "releaseAmount": lastAmount});
           }
-        } else {
           
+        } else {
+          let points = tokenVestingInfo[stakeholder].datapoints;
+          // 把用户设置的点位按照 x 轴从小到大排列；
+          points.sort(function(a,b) {return Number(a.x) - Number(b.x)});
+
+          let piecewiseFunctions = new Array();
+          // // 排列后的点位，可以组成分段函数的表达式，目前此处用四元组表达分段函数：[x0, x1, y0, y1], (x0, y0) 和 (x1, y1) 是每一段的两个端点
+          for (let j = 0; j < points.length; j++) {
+              if (j == 0) {
+                  continue;
+              } else {
+                  piecewiseFunctions.push([Number(points[j - 1].x), Number(points[j].x), Number(points[j - 1].y), Number(points[j].y)]);
+              }
+          }
+
+          let releaseAmount = 0;
+          for (let day = 0; day < finalDay; day++) {
+            let retIdx = -1;
+            for (let func = 0; func < piecewiseFunctions.length; func++){
+                if (day >= piecewiseFunctions[func][0] && day <= piecewiseFunctions[func][1]) {
+                    retIdx = func;
+                    break;
+                }
+            }
+            // 不在分段函数范围内时，不需要计算后续逻辑
+            if (retIdx == -1) {
+                this.lineChartData.push({"stakeholder": stakeholder, "day": day, "releaseAmount": releaseAmount});
+                continue;
+            }
+            // 计算当前天，在当前所处的分段上的具体值是多少
+            let tmpAmount = Math.round((day - piecewiseFunctions[retIdx][0]) / (piecewiseFunctions[retIdx][1] - piecewiseFunctions[retIdx][0]) * (piecewiseFunctions[retIdx][3] - piecewiseFunctions[retIdx][2]) + piecewiseFunctions[retIdx][2]);
+            if ( tokenVestingInfo[stakeholder].type == "percentage") {
+                tmpAmount = Math.round(tmpAmount *  stakeholderSupply/ 100);
+            }
+            releaseAmount += tmpAmount;
+
+            this.lineChartData.push({"stakeholder": stakeholder, "day": day, "releaseAmount": releaseAmount});
+          }
         }
       }
       this.lineChartData.sort(this.objectArrayCompare("day"));
