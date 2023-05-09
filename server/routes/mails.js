@@ -14,7 +14,7 @@ const leandro = (nome, frontEndDev) => {
 	}
 }
 
-let access_token = "ya29.a0AWY7CkkGpXCrF7RRQidxs7A5JzVdJtWdgVzPvciTw0dzZ41TloYfsyuwYnsFWjn5kypvxfAFwTjLo_PxEJfnT-cAfNLDOhpaGKf26DhvTHGJ6qdd9-F7K6kjw_YkmdNMh9vCaCZLE2s4oUzBgqCsT5aqHOK8344aCgYKAYASARESFQG1tDrpDYSQuT0qQ6xHrmL_dWVd8g0166"
+let access_token = "acces_token"
 
 const scheduleCronstyle = () => {
   //: schedule task will be executed every 30 seconds
@@ -27,9 +27,9 @@ const scheduleCronstyle = () => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        client_id: "672020294536-kcj0vcfsu5ptuuisl55ohojg2q5s3ddn.apps.googleusercontent.com",
-        client_secret: "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",
-        refresh_token: "1//04ct6yhL547G7CgYIARAAGAQSNwF-L9IrLXIPRVn7DipFJRadKdZYd92iX7ExZr6XUSG-_RdDuSuGo8BPWahwfMsWyagee6rFXkU",
+        client_id: "client_id",
+        client_secret: "client_secret",
+        refresh_token: "refresh_token",
         grant_type: "refresh_token"
       })
     }).then(res => res.json()).then(json => {
@@ -51,7 +51,7 @@ router.get('/send/:to', (req, res) => {
   console.log(req.params.to);
   
   // 如果使用 Gmail 邮箱
-  // let access_token = "ya29.a0AWY7CklErgyfCQb4HtlaZaDwwU4lT3cX0WePvDrALcnMQdtY4IiaMfIDPrpnz-e0HeAvANdKvqe-HRLOZImyTFBf3CcVvg2GFRh56_9OvY-pbTCAf8Bso51UT4SfHeQ8VpeFeS70ECOUiUr0hfeApr20ctk8aCgYKAZISARESFQG1tDrpdBDAzL5gqhMNpPVgB7I3SA0163";
+  // let access_token = "access_token";
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 465,
@@ -60,16 +60,16 @@ router.get('/send/:to', (req, res) => {
       type: "OAuth2",
       user: "models.research.lab@gmail.com",
       clientId:
-        "672020294536-kcj0vcfsu5ptuuisl55ohojg2q5s3ddn.apps.googleusercontent.com",
-      clientSecret: "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",
+        "client_id",
+      clientSecret: "client_secret",
       refreshToken:
-        "1//04ct6yhL547G7CgYIARAAGAQSNwF-L9IrLXIPRVn7DipFJRadKdZYd92iX7ExZr6XUSG-_RdDuSuGo8BPWahwfMsWyagee6rFXkU",
+        "refresh_token",
       accessToken:
         access_token,
     },
   });
 
-  // let access_token = "ya29.a0AWY7CklvWWtJxwRDHVzfCWu8wuX8tXmlLsDzaDKQvPyfnaSKolYQzDIrVtpWdqxMA3yh2m8GmaBMf799TaPpvwvNGSm1MlE14ZsjEkgi_4HW_3Fsps6_-oA6ilBJnP-Na-SEX5yQ06LRtsnsTJWvNNDwY5s-_ToaCgYKAaoSARESFQG1tDrp5tAitNX2aXh5ZwRZ9zaDiQ0166";
+  // let access_token = "access_token";
   // const transporter = nodemailer.createTransport({
   //   host: "smtp.gmail.com",
   //   port: 465,
@@ -78,10 +78,10 @@ router.get('/send/:to', (req, res) => {
   //     type: "OAuth2",
   //     user: "binwang.neu@gmail.com",
   //     clientId:
-  //       "569830411778-t4mtq59bkkq4b65pj649m6kdt4irei4k.apps.googleusercontent.com",
-  //     clientSecret: "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",
+  //       "client_id",
+  //     clientSecret: "client_secret",
   //     refreshToken:
-  //       "1//04ZFWwik31BFOCgYIARAAGAQSNwF-L9IrhCONVYtoRyiIP4HKeaT3Sfj2OHSoa24MKz06hgEtwdM_Fr2FSXSkUb9w-M1xDvkz5tM",
+  //       "refresh_token",
   //     accessToken:
   //       access_token,
   //   },
