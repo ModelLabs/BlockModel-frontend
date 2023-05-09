@@ -1,7 +1,8 @@
 var express = require('express')
 var router = express.Router()
 const Session = require('../model/Session')
-const schedule = require('node-schdule')
+const schedule = require('node-schedule')
+const Apikey = require('../model/Apikey')
 
 const leandro = (nome, frontEndDev) => {
 	return {
@@ -13,11 +14,21 @@ const leandro = (nome, frontEndDev) => {
 // schedule task for removing expired sessions 
 const scheduleCronstyle = () => {
   schedule.scheduleJob('*/15 * * * *', () => {
-    console.log('scheduleCronstyle:' + new Date());
+    console.log('update apikey status and delete expired session:');
     Session.findAll().then(sessions => {
       sessions.forEach(element => {
-        console.log(element._calltimes)
-        if (Date.now() - Number(element._calltimes) > 900000) {
+        if (Date.now() - Number(element._createtime) > 900000) {
+          // update apikey status
+          Apikey.update({ _status: 0 }, { where: { _apikey: element._apikey } })
+            .then((reslut) => {
+              if (reslut[0] == 1) {
+                console.log('Apikey Update!')
+              } else {
+                console.log('No Apikey!')
+              }
+            })
+            .error(err => console.log('error: ' +err));
+          // delete expird session
           Session.destroy({
             where: {
               _id: element._id

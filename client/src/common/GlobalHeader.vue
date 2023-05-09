@@ -354,7 +354,7 @@ export default {
     margin: 0;
     padding: 0;
     overflow: hidden;
-
+    //background-color: black;
     position: fixed;
     z-index: 9999;
     top: 0;
