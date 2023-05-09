@@ -4,7 +4,7 @@
       <h3 class="select-title">Design Your Tokenomics</h3>
       <span>Token Symbol</span><el-input v-model="tokenSymbol" size="small"></el-input>
       <span>Token Supply</span><el-input v-model="tokenSupply" size="small"></el-input>
-      <span>Vesting Schedule</span>
+      <h4>Vesting Schedule</h4>
       <el-form 
         :model="dynamicValidateForm" 
         ref="dynamicValidateForm" 
@@ -15,7 +15,6 @@
           v-for="(stakeholderobj, index) in dynamicValidateForm.stakeholders"
           :label="'Stakeholder' + index"
           :key="stakeholderobj.key"
-         
         >
           <div>
             <span>Name</span><el-input v-model="stakeholderobj.name" class="stakeholder-edit-input" size="small"></el-input>
@@ -28,7 +27,7 @@
             <el-button class="visual-button" @click="openVisualSetting(index)">
               Visual Setting
             </el-button>
-            
+              
             <el-dialog
                 title="Policy Visual Setting"
                 :visible.sync="visualSettingVisible"
@@ -40,26 +39,27 @@
             </el-dialog>
           </div>
 
-          
-          <el-button @click.prevent="removeDomain(index)" class="del-button" size="mini">-</el-button>
-        </el-form-item>
+            
+            <el-button @click.prevent="removeDomain(index)" class="del-button" size="mini">-</el-button>
+          </el-form-item>
 
-        <el-form-item class="form-item">
-          <el-button @click="addDomain" class="add-button" size="mini">+</el-button>
+          <!-- <el-form-item class="form-item">
+            <el-button @click="addDomain" class="add-button" size="mini">+ Add Stakeholder</el-button>
+          </el-form-item> -->
 
-        </el-form-item>
+      </el-form> 
 
-      </el-form>   
-      <el-button @click="drawer = true" type="primary" style="margin-left: 16px;" class="drawer-button">
-        GPT Helper
-      </el-button>
+      <el-button @click="addDomain" class="add-button" size="mini">+ Add Stakeholder</el-button>
+
       <el-button 
         @click="submitForm()" 
         class="submit-button" 
         size="mini">Done
       </el-button>
     </div>
-   
+
+    <img src="../assets/AI-logo.png" @click="drawer = true"/>
+
     <el-drawer
       title="GPTHelper"
       :visible.sync="drawer"
@@ -337,13 +337,15 @@ export default {
 
 <style scoped lang="scss">
 .container {
-  display: flex;
-  flex-direction: column;
   overflow: visible;
+  margin-top: 50px;
   .tokenomics-content {
     width: 1000px;
     margin: auto;
     height: auto;
+    h3 {
+      margin-bottom: 10px;
+    }
     .form-item {
       padding: 5px;
       margin-bottom: 0px;
@@ -355,8 +357,7 @@ export default {
       }
 
       /deep/ .el-form-item__label {
-        color: black;
-        //font-weight: 600;
+        color: white;
       }
 
       .stakeholder-edit-input {
@@ -373,8 +374,6 @@ export default {
         color:rgb(194, 194, 194)
       }
 
-      
-      
       .del-button {
         margin-left: 15px;
         height: 28px;
@@ -383,8 +382,8 @@ export default {
       }
 
       .add-button {
-        width: 60px;
-        color:rgb(194, 194, 194)
+        width: 150px;
+        color:rgb(194, 194, 194);
       }
       .submit-button {
         margin-left: 15px;
@@ -414,8 +413,14 @@ export default {
   }
   
 }
-.select-title {
-  text-align: left;
-  margin-bottom: 0px;
+
+img{
+  position: fixed;
+  width: 55px;
+  height: 55px;
+  right: 100px;
+  bottom: 100px;
+  border-radius: 55px;
+  border: 2px solid #fff;
 }
 </style>
