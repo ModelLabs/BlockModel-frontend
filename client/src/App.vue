@@ -34,7 +34,7 @@ html,body,#app {
   height: 100%;
   background-color: black;
   //background: -webkit-linear-gradient(top, rgba(184, 238, 248, 0.33), rgba(154, 126, 236, 0.22));
-  overflow: scroll;
+  // overflow: scroll;
 }
 body {
   //overflow: scroll;

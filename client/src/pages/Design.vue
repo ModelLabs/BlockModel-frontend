@@ -75,8 +75,14 @@
         :modal-append-to-body='true'
         :append-to-body='true'
         >
+        <span>Token Final Allocation</span>
         <PieChart :piedata="pieChartData" />
-        <AreaChart :areaData="lineChartData" />
+        <span>Token Circulation</span>
+        <AreaChart :areaData="areaChartData" />
+        <span>Token Control</span>
+        <LineChart :lineData="lineChartData"/>
+        <span>Token Inflation</span>
+        <LineChart :lineData="lineChartData2"/>
     </el-dialog>
 
   </div>
@@ -84,11 +90,12 @@
 <script>
 import { mapState, mapMutations, mapActions } from "vuex";
 
-import { percentageToNumber, checkSumObj, checkSumArray, getRandomInt} from "../utils/numberUtil";
+import { percentageToNumber, checkSumObj, checkSumArray, getRandomInt, StandardNum} from "../utils/numberUtil";
 import PolicyVisual from "../components/create/PolicyVisualForDesign.vue";
 import Copilot from "../components/AI/Copilot.vue";
 import PieChart from "../components/AI/PieChart.vue";
 import AreaChart from "../components/AI/AreaChart.vue";
+import LineChart from "../components/AI/LineChart.vue";
 
 var d3 = require("d3-interpolate");
 
@@ -112,11 +119,16 @@ export default {
       designResultVisible: false,
 
       pieChartData: [],
+      areaChartData: [],
       lineChartData: [],
+      lineChartData2: [],
+      stakeholderTokenAmountPerDay: {},
 
       tokenBasicInfo: {},
       tokenAllocationInfo: {},
       tokenVestingInfo: {},
+
+      finalDay: 1001,
     };
   },
   components: {
@@ -124,6 +136,7 @@ export default {
     Copilot,
     PieChart,
     AreaChart,
+    LineChart
   },
   methods: {
     submitForm() {
@@ -140,6 +153,8 @@ export default {
       console.log("token allocation info:", this.tokenAllocationInfo);
       console.log("token vesting policy:", this.tokenVestingInfo);
       this.packDataForVisualization(this.tokenBasicInfo, this.tokenAllocationInfo, this.tokenVestingInfo);
+      this.calculateAllocation();
+      this.calculateIR(365);
     },
     removeDomain(index) {
       if (index !== -1) {
@@ -170,7 +185,8 @@ export default {
       // initial_suppply 有可能是字符串或者科学记数法，先用 Number()进行规范
       tokenBasicInfo.initial_supply = Number(tokenBasicInfo.initial_supply);
       this.pieChartData = [];
-      this.lineChartData = [];
+      this.areaChartData = [];
+      this.stakeholderTokenAmountPerDay = {};
 
       for (let i in tokenAllocationInfo) {
         this.pieChartData.push({type: i, value: tokenBasicInfo.initial_supply * percentageToNumber(tokenAllocationInfo[i])});
@@ -178,9 +194,9 @@ export default {
       // 根据 vesting schedule 进行计算和插值
       // let maxDay = 2000;
       for (let stakeholder in tokenVestingInfo) {
+        this.stakeholderTokenAmountPerDay[stakeholder] = new Array();
         let stakeholderSupply = tokenBasicInfo.initial_supply * percentageToNumber(tokenAllocationInfo[stakeholder]);
         let accumulatedReleaseAmount = 0;
-        let finalDay = 1001;
         console.log("stakeholder:", stakeholder, " - ", stakeholderSupply);
 
         if (tokenVestingInfo[stakeholder].effect == "point") {
@@ -191,13 +207,15 @@ export default {
             let curAmount = accumulatedReleaseAmount + stakeholderSupply * Number(tokenVestingInfo[stakeholder].datapoints[j].y) / 100;
             accumulatedReleaseAmount += stakeholderSupply  * Number(tokenVestingInfo[stakeholder].datapoints[j].y) / 100;
             for (let day = lastDay; day < curDay; day++) {
-              this.lineChartData.push({"stakeholder": stakeholder, "day": day, "releaseAmount": lastAmount});
+              this.areaChartData.push({"stakeholder": stakeholder, "day": String(day), "releaseAmount": lastAmount});
+              this.stakeholderTokenAmountPerDay[stakeholder].push(lastAmount);
             }
             lastDay = curDay;
             lastAmount = curAmount;
           }
-          for (let day = lastDay; day < finalDay; day++) {
-            this.lineChartData.push({"stakeholder": stakeholder, "day": day, "releaseAmount": lastAmount});
+          for (let day = lastDay; day < this.finalDay; day++) {
+            this.areaChartData.push({"stakeholder": stakeholder, "day": String(day), "releaseAmount": lastAmount});
+            this.stakeholderTokenAmountPerDay[stakeholder].push(lastAmount);
           }
           
         } else {
@@ -216,7 +234,7 @@ export default {
           }
 
           let releaseAmount = 0;
-          for (let day = 0; day < finalDay; day++) {
+          for (let day = 0; day < this.finalDay; day++) {
             let retIdx = -1;
             for (let func = 0; func < piecewiseFunctions.length; func++){
                 if (day >= piecewiseFunctions[func][0] && day <= piecewiseFunctions[func][1]) {
@@ -226,7 +244,8 @@ export default {
             }
             // 不在分段函数范围内时，不需要计算后续逻辑
             if (retIdx == -1) {
-                this.lineChartData.push({"stakeholder": stakeholder, "day": day, "releaseAmount": releaseAmount});
+                this.areaChartData.push({"stakeholder": stakeholder, "day": String(day), "releaseAmount": releaseAmount});
+                this.stakeholderTokenAmountPerDay[stakeholder].push(releaseAmount);
                 continue;
             }
             // 计算当前天，在当前所处的分段上的具体值是多少
@@ -236,24 +255,68 @@ export default {
             }
             releaseAmount += tmpAmount;
 
-            this.lineChartData.push({"stakeholder": stakeholder, "day": day, "releaseAmount": releaseAmount});
+            this.areaChartData.push({"stakeholder": stakeholder, "day": String(day), "releaseAmount": releaseAmount});
+            this.stakeholderTokenAmountPerDay[stakeholder].push(releaseAmount);
           }
         }
       }
-      this.lineChartData.sort(this.objectArrayCompare("day"));
+      this.areaChartData.sort(this.objectArrayCompare("day"));
       // console.log("line:",this.LineChartData);
       // console.log("pie:", this.PieChartData);
+      console.log("total amount per day:", this.stakeholderTokenAmountPerDay);
     },
 
     // 对 Object 数组进行排序时的比较函数
     // 参数 p: 具体要对 Object 哪个字段进行比较
     objectArrayCompare(p){ 
       return function(m,n){
-          var a = m[p];
-          var b = n[p];
+          var a = Number(m[p]);
+          var b = Number(n[p]);
           return a - b; //升序
       }
     },
+
+    // 计算控盘比
+    calculateAllocation() {
+      this.lineChartData = [];
+      for (let day = 0 ; day < this.finalDay; day++) {
+        let curDayTotal = 0;
+        for (let stakeholder in this.stakeholderTokenAmountPerDay) {
+          curDayTotal += this.stakeholderTokenAmountPerDay[stakeholder][day];
+        }
+        for (let stakeholder in this.stakeholderTokenAmountPerDay) {
+          let percentage = StandardNum(this.stakeholderTokenAmountPerDay[stakeholder][day] / curDayTotal);
+          this.lineChartData.push({"stakeholder": stakeholder, "day": String(day), "releaseAmount": percentage});
+        }
+      }
+    },
+
+    // 计算通胀率
+    calculateIR(step) {
+      this.lineChartData2 = [];
+      for(let day = step; day < this.finalDay; day++) { 
+        // 计算上一个 step 的 token 流通总量
+        let lastStepAmount = 0;
+        for (let stakeholder in this.stakeholderTokenAmountPerDay) {
+          lastStepAmount += this.stakeholderTokenAmountPerDay[stakeholder][day - step]
+        }
+
+        // 计算当前 step 的 token 流通总量
+        let curStepAmount = 0;
+        for (let stakeholder in this.stakeholderTokenAmountPerDay) {
+          curStepAmount += this.stakeholderTokenAmountPerDay[stakeholder][day]
+        }
+
+        if (lastStepAmount <= 0) {
+          this.lineChartData2.push({"stakehodler": "inflate_rate", "day": String(day), "releaseAmount": NaN});
+        }
+        else {
+          this.lineChartData2.push({"stakehodler": "inflate_rate", "day": String(day), "releaseAmount": StandardNum((curStepAmount - lastStepAmount) / lastStepAmount)});
+        }
+      }
+      console.log("line chart data2:", this.lineChartData2);
+    }
+    
   },
 
   computed: {
@@ -261,76 +324,7 @@ export default {
   },
 
   mounted(){
-    // this.retrieveAPIkey();
-    // let tmpBasicInfo = {
-    //   "symbol": "DEX",
-    //   "initial_supply": 1000000000,
-    //   "inflation": {
-    //     "base_rate": 0.05,
-    //     "min_rate": 0.02,
-    //     "max_rate": 0.1
-    //   }
-    // };
-    // let tmpLineChartData = {
-    //   "team": {
-    //     type: "percentage",
-    //     effect: "point",
-    //     datapoints: [
-    //       {
-    //         x: "1",
-    //         y: "50"
-    //       },
-    //       {
-    //         x:"100",
-    //         y:"50",
-    //       }
-    //     ]
-
-    //   }
-    // };
-    // let tmpPieChartData = {
-    //   "team": "15%",
-    //   "advisor": "5%",
-    //   "foundation": "15%",
-    //   "investor": "25%",
-    //   "airdrop": "10%",
-    //   "liquidity_mining": "30%"
-    // };
-    // this.designResultVisible = true;
-    // this.packDataForVisualization(tmpBasicInfo,tmpPieChartData, tmpLineChartData);
-    // this.msglist.push(
-    //   {
-    //     content: 'My design for ' + tmpBasicInfo.symbol + ' is as follows: ',
-    //     user: false,
-    //     drawChart: true,
-    //     piedata: JSON.parse(JSON.stringify(this.PieChartData)),
-    //     linedata: JSON.parse(JSON.stringify(this.LineChartData)),
-    //   }
-    // );
-    // this.msglist.push(
-    //   {
-    //     // id: 1,
-    //     content: "good",
-    //     user: true,
-    //     drawChart: false,
-    //     piedata: null,
-    //     linedata: null,
-    //   }
-    // );
-    // this.msglist.push(
-    //   {
-    //     // id: 1,
-    //     content: "thank you",
-    //     user: false,
-    //     drawChart: false,
-    //     piedata: null,
-    //     linedata: null,
-    //   }
-    // );
-    // console.log(checkSumObj(tmpPieChartData));
-    // for (var i in tmpLineChartData) {
-    //   console.log(checkSumArray(tmpLineChartData[i].percentage));
-    // }
+    
   }
 }
 </script>

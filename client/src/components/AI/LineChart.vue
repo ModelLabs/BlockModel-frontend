@@ -84,10 +84,10 @@ export default {
         legend: {
           radio: {},
         },
-        // slider:{
-        //   start:0,
-        //   end:1
-        // },
+        slider:{
+          start:0,
+          end:1
+        },
         tooltip: {
           follow: true,
           enterable: true,
@@ -95,6 +95,26 @@ export default {
           shared: true,
           marker: { lineWidth: 0.5, r: 3 },
         },
+        annotations: [
+          {
+            type: 'text',
+            position: [0, 1],
+            content: '中位数',
+            offsetY: -4,
+            style: {
+              textBaseline: 'bottom',
+            },
+          },
+          {
+            type: 'line',
+            start: ['min', 1],
+            end: ['max', 1],
+            style: {
+              stroke: '#F4664A',
+              lineDash: [2, 2],
+            },
+          },
+        ],
       });
       if (this.lineData.length != 0) {
         this.LinePlot.render();
