@@ -75,6 +75,17 @@
         :modal-append-to-body='true'
         :append-to-body='true'
         >
+      <div class="selection">
+         <el-select v-model="selectedProperties" multiple placeholder="Selection">
+          <el-option
+            v-for="item in options"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
+      </div>
+
         <span>Token Final Allocation</span>
         <PieChart :piedata="pieChartData" />
         <span>Token Circulation</span>
@@ -102,6 +113,11 @@ var d3 = require("d3-interpolate");
 export default {
   data() {
     return {
+      selectedProperties:['Default Property',],
+      options: [{
+          value: 'Default Property',
+          label: 'Default Property'
+      },],
       tokenSymbol: "",
       tokenSupply: "",
 
@@ -405,9 +421,7 @@ export default {
     margin-top: 100px;
     overflow: scroll;
   }
-  
 }
-
 img{
   position: fixed;
   width: 55px;

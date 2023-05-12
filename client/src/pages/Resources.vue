@@ -49,7 +49,7 @@ export default {
     span {
       font-size: 40px;
       font-weight: 600;
-      background-image: linear-gradient(to bottom, #4bf8ef, #f879e3);
+      background-image: linear-gradient(to bottom, #49e4f5, #d849f5);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
